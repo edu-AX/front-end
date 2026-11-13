@@ -1,7 +1,7 @@
 // 예산·장소·담당 이력 질문은 백엔드 챗봇이 아직 모르는 자료라, 화면에서 먼저 등록된 자료로 답한다.
 // (백엔드 /api/chat 에 이 자료가 들어가면 이 파일은 지워도 된다)
 import { events } from "./data";
-import { budgets, getExt, venues, won } from "./ext";
+import { allBudgets, getExt, venues, won } from "./ext";
 import { DISCLAIMER } from "./chat/messages";
 import type { ChatResponse, SourceRef } from "./types";
 
@@ -21,6 +21,7 @@ export function answerExt(q: string, focusEventId?: string): LocalResponse | nul
   const t = q.replace(/\s/g, "");
 
   if (/1인당|경비|예산|얼마/.test(t)) {
+    const budgets = allBudgets(); // 업로드로 추가한 예산 포함
     const eid = pickEvent(t, budgets.some((b) => b.eventId === focusEventId) ? focusEventId! : "E-07");
     const b = budgets.find((x) => x.eventId === eid);
     const e = events.find((x) => x.id === eid);

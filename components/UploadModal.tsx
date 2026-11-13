@@ -3,11 +3,12 @@ import { useState } from "react";
 import { addDays, today as todayFn } from "@/lib/dates";
 import { apiUrl } from "@/lib/api";
 import { useApp } from "@/lib/state";
-import { draftToEventCard } from "@/lib/upload/draft";
-import type { EventDraft, MaskKind, TemplateId } from "@/lib/types";
+import { draftExtras, draftToEventCard } from "@/lib/upload/draft";
+import { applyUploadExtras } from "@/lib/uploadExtras";
+import type { EventDraft, MaskKind } from "@/lib/types";
+import UploadReview from "./UploadReview";
 
 const KIND_LABEL: Record<MaskKind, string> = { phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일", name: "이름" };
-const TEMPLATE_LABEL: Record<TemplateId, string> = { OUT_OVERNIGHT: "교외 숙박형", OUT_DAY: "교외 1일형", IN_SCHOOL: "교내 행사" };
 
 type Extract = { fileName: string; charCount: number; maskedText: string; maskCount: number; hits: { kind: MaskKind; count: number }[] };
 
@@ -15,7 +16,7 @@ type Extract = { fileName: string; charCount: number; maskedText: string; maskCo
 const nextYear = (d: string | null) => (d ? `${Number(d.slice(0, 4)) + 1}${d.slice(4)}` : addDays(todayFn(), 365));
 
 export default function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: (eventId: string) => void }) {
-  const { addEvent } = useApp();
+  const { addEvent, updateExt } = useApp();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -48,25 +49,26 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
     setBusy(false);
   };
 
-  const save = () => {
-    if (!draft || !nextDate) return;
+  const save = (draft2: EventDraft, nextEventDate: string) => {
+    if (!nextEventDate) return;
     const id = `U-${Date.now()}`;
     // 업로드한 보고서는 내년 카드의 "작년 기록"이 되므로, 연도는 보고서의 행사 연도
-    const reportYear = draft.eventDate ? Number(draft.eventDate.slice(0, 4)) : Number(todayFn().slice(0, 4)) - 1;
-    addEvent(draftToEventCard(draft, { id, nextEventDate: nextDate, year: reportYear, author: `${reportYear} 담당 교사` }));
+    const reportYear = draft2.eventDate ? Number(draft2.eventDate.slice(0, 4)) : Number(todayFn().slice(0, 4)) - 1;
+    addEvent(draftToEventCard(draft2, { id, nextEventDate, year: reportYear, author: `${reportYear} 담당 교사` }));
+    // 예산·장소·고민 기록·담당 이력·진로 탭 데이터
+    updateExt((p) => applyUploadExtras(p, id, draftExtras(draft2), reportYear));
     onSaved(id);
   };
 
-  const input = "w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-cream p-6 shadow-xl">
+      <div onClick={(e) => e.stopPropagation()} className={`max-h-[90vh] w-full overflow-y-auto overscroll-contain rounded-3xl bg-cream p-6 shadow-xl ${step === 3 ? "max-w-2xl" : "max-w-lg"}`}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold">작년 행사 자료 올리기</h2>
           <button onClick={onClose} className="rounded-full bg-white px-3 py-1 text-sm shadow-sm">닫기</button>
         </div>
         <ol className="mb-4 flex gap-2 text-xs">
-          {["파일 올리기", "가린 내용 확인", "카드 초안 고치기"].map((l, i) => (
+          {["파일 올리기", "가린 내용 확인", "AI 초안 확인·고치기"].map((l, i) => (
             <li key={l} className={`rounded-full px-3 py-1 font-bold ${step === i + 1 ? "bg-stone-800 text-white" : "bg-white text-stone-400"}`}>{i + 1}. {l}</li>
           ))}
         </ol>
@@ -100,32 +102,7 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
           </div>
         )}
 
-        {step === 3 && draft && (
-          <div className="space-y-3 text-sm">
-            {mode !== "llm" && <p className="rounded-xl bg-amber-50 p-2 text-xs text-amber-800">데모 초안이에요(mode: {mode}). 실제 AI 연결 시 올린 내용으로 만들어져요.</p>}
-            <label className="block"><span className="text-xs text-stone-500">행사명</span><input className={input} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
-            <div className="grid grid-cols-2 gap-2">
-              <label className="block"><span className="text-xs text-stone-500">구분</span>
-                <select className={input} value={draft.scope} onChange={(e) => setDraft({ ...draft, scope: e.target.value as EventDraft["scope"] })}><option>교내</option><option>교외</option></select></label>
-              <label className="block"><span className="text-xs text-stone-500">유형</span>
-                <select className={input} value={draft.template} onChange={(e) => setDraft({ ...draft, template: e.target.value as TemplateId })}>
-                  {(Object.keys(TEMPLATE_LABEL) as TemplateId[]).map((t) => <option key={t} value={t}>{TEMPLATE_LABEL[t]}</option>)}</select></label>
-            </div>
-            <label className="block"><span className="text-xs text-stone-500">내년 행사일 (올해 날짜: {draft.eventDate ?? "알 수 없음"})</span>
-              <input type="date" className={input} value={nextDate} onChange={(e) => setNextDate(e.target.value)} /></label>
-            <div>
-              <div className="mb-1 text-xs text-stone-500">작년 단계별 실제 일자·메모</div>
-              <ul className="space-y-1 rounded-2xl bg-white p-3 text-xs">
-                {draft.steps.map((s) => <li key={s.stepId} className="flex justify-between gap-2"><span>{s.stepId}</span><span className="text-stone-500">{s.actualDate ?? "-"} {s.memo}</span></li>)}
-              </ul>
-            </div>
-            <label className="block"><span className="text-xs text-stone-500">주의점 (한 줄에 하나)</span>
-              <textarea className={`${input} h-20`} value={draft.cautions.join("\n")} onChange={(e) => setDraft({ ...draft, cautions: e.target.value.split("\n").filter((x) => x.trim()) })} /></label>
-            <label className="block"><span className="text-xs text-stone-500">내년엔 이렇게 (학생 이름·연락처는 적지 마세요)</span>
-              <textarea className={`${input} h-16`} value={draft.handoverNote} onChange={(e) => setDraft({ ...draft, handoverNote: e.target.value })} /></label>
-            <div className="flex justify-end"><button onClick={save} disabled={!nextDate || !draft.title.trim()} className="rounded-full bg-stone-800 px-5 py-2 text-sm font-bold text-white">내년 캘린더에 저장</button></div>
-          </div>
-        )}
+        {step === 3 && draft && <UploadReview draft={draft} initialNextDate={nextDate} mode={mode} onSave={save} />}
       </div>
     </div>
   );

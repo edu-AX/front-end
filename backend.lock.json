@@ -1,7 +1,7 @@
 {
   "repo": "https://github.com/edu-AX/back-end.git",
   "branch": "main",
-  "commit": "108e81be914d1487311d78aa5e3c8902a539ec84",
+  "commit": "c3bf78e093889d0cdb5a04cbc2dcae7510d8261b",
   "files": [
     "lib/types.ts",
     "lib/dates.ts",

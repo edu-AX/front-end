@@ -3,12 +3,12 @@ import { useState } from "react";
 import { diffDays, formatDDay } from "@/lib/dates";
 import { byline, mmdd } from "@/lib/dates-view";
 import { getChange, getGuideline, getTemplate } from "@/lib/data";
-import { getExt, settlementSteps } from "@/lib/ext";
+import { getExt, getRecord, settlementSteps } from "@/lib/ext";
 import { handoverCoverage } from "@/lib/handover";
 import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
-import type { ChangeAlert, HandoverNote, ScheduledStep, StepId } from "@/lib/types";
+import { isCustomStepId, type AnyStepId, type ChangeAlert, type HandoverNote, type ScheduledStep } from "@/lib/types";
 import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
@@ -22,10 +22,13 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function EventDrawer({ id, tab: initialTab, onClose }: { id: string; tab?: TabKey; onClose: () => void }) {
-  const { state, ext, today, events, changes, setStep, setEventDate, addNote, toggleConfirm, updateExt } = useApp();
+  const { state, ext, today, events, changes, setStep, setEventDate, addNote, toggleConfirm, updateExt, addCustomStep, editStep, hideStep, unhideStep, removeCustomStep } = useApp();
   const [tab, setTab] = useState<TabKey>(initialTab ?? "check");
   const [memo, setMemo] = useState("");
-  const [memoStep, setMemoStep] = useState<StepId | "">("");
+  const [memoStep, setMemoStep] = useState<AnyStepId | "">("");
+  // 체크리스트 직접 편집
+  const [editing, setEditing] = useState<{ id: AnyStepId; label: string; offset: string } | null>(null);
+  const [adding, setAdding] = useState<{ label: string; offset: string; date: string } | null>(null);
   useLockBodyScroll();
   useEscape(onClose);
   const ev = events.find((e) => e.id === id);
@@ -36,18 +39,47 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const extra = settlementSteps(ev, state, ext);
   type Row = {
     key: string; label: string; dueDate: string; done: boolean; alert: boolean; money: boolean;
-    stepId?: StepId; lastYear?: ScheduledStep["lastYear"]; notes: HandoverNote[]; toggle: (v: boolean) => void;
+    stepId?: AnyStepId; offsetDays?: number; isCustom?: boolean; author?: string; stepMemo?: string; edited?: boolean;
+    lastYear?: ScheduledStep["lastYear"]; notes: HandoverNote[]; toggle: (v: boolean) => void;
   };
   const rows: Row[] = [
-    ...schedule.map((s): Row => ({ key: s.id, label: s.label, dueDate: s.dueDate, done: s.state === "done", alert: s.alertIds.length > 0, money: false, stepId: s.id, lastYear: s.lastYear, notes: s.notes, toggle: (v: boolean) => setStep(ev.id, s.id, v ? "done" : "todo") })),
+    ...schedule.map((s): Row => ({
+      key: s.id, label: s.label, dueDate: s.dueDate, done: s.state === "done", alert: s.alertIds.length > 0, money: false,
+      stepId: s.id, offsetDays: s.offsetDays, isCustom: s.isCustom, author: s.author, stepMemo: s.memo, edited: s.edited,
+      lastYear: s.lastYear, notes: s.notes, toggle: (v: boolean) => setStep(ev.id, s.id, v ? "done" : "todo"),
+    })),
     ...extra.map((s): Row => ({ key: s.id as string, label: s.label, dueDate: s.dueDate, done: s.done, alert: false, money: true, notes: [], toggle: (v: boolean) => updateExt((p) => ({ extraDone: { ...p.extraDone, [s.key]: v } })) })),
   ].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  // 숨긴 단계 (다시 보이기용 이름)
+  const hiddenIds = state.hiddenSteps?.[ev.id] ?? [];
+  const allStepLabels = new Map<string, string>([
+    ...getTemplate(ev.template).steps.map((s) => [s.id, s.label] as [string, string]),
+    ...[...(ev.customSteps ?? []), ...(state.customSteps?.[ev.id] ?? [])].map((c) => [c.id, c.label] as [string, string]),
+  ]);
+  const record = getRecord(ev.id);
+  const stop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); };
+  const dLabel = (n: number) => (n === 0 ? "D-day" : n < 0 ? `D${n}` : `D+${n}`);
+  const saveEdit = () => {
+    if (!editing) return;
+    const off = Number(editing.offset);
+    editStep(ev.id, editing.id, { label: editing.label, ...(Number.isFinite(off) && editing.offset.trim() !== "" ? { offsetDays: Math.round(off) } : {}) });
+    setEditing(null);
+  };
+  const saveAdd = () => {
+    if (!adding || !adding.label.trim()) return;
+    // 날짜를 고르면 행사일과의 차이로, 아니면 입력한 D-n 으로
+    const off = adding.date ? diffDays(date, adding.date) : -Number(adding.offset);
+    if (!Number.isFinite(off)) return;
+    addCustomStep(ev.id, { label: adding.label, offsetDays: off });
+    setAdding(null);
+  };
 
   // 이 행사에 걸린 변경 알림 (기본 + 기준 업데이트 확인에서 추가한 것). 단계가 정해진 건 그 단계 아래에 붙인다
   const alerts = changes.filter((c) => c.eventIds.includes(ev.id));
   const stepIds = new Set<string>(schedule.map((s) => s.id));
   const eventAlerts = alerts.filter((c) => !c.stepId || !stepIds.has(c.stepId));
-  const stepAlerts = (stepId?: StepId) => (stepId ? alerts.filter((c) => c.stepId === stepId) : []);
+  const stepAlerts = (stepId?: AnyStepId) => (stepId ? alerts.filter((c) => c.stepId === stepId) : []);
   const changeBox = (c: ChangeAlert, compact = false) => {
     const confirmed = isChangeConfirmed(c, state);
     const pending = c.status === "추진 중";
@@ -156,12 +188,44 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                 const late = !r.done && diffDays(today, r.dueDate) < 0;
                 const issue = r.lastYear?.hadIssue;
                 return (
-                  <li key={r.key} className={`rounded-xl shadow-sm ${r.money ? "bg-amber-50" : "bg-white"} ${issue ? "ring-1 ring-red-200" : ""}`}>
-                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm">
-                      <input type="checkbox" checked={r.done} onChange={(e) => r.toggle(e.target.checked)} className="h-4 w-4 accent-emerald-500" />
-                      <span className={`flex-1 ${r.done ? "text-stone-400 line-through" : ""}`}>{r.money && "💰 "}{r.alert && "⚠️ "}{r.label}</span>
-                      <span className={`text-xs ${late ? "font-bold text-red-500" : "text-stone-400"}`}>{late ? "마감 지남 " : ""}{mmdd(r.dueDate)}</span>
-                    </label>
+                  <li key={r.key} className={`group rounded-xl shadow-sm ${r.money ? "bg-amber-50" : r.isCustom ? "bg-sky-50" : "bg-white"} ${issue ? "ring-1 ring-red-200" : ""}`}>
+                    {editing && r.stepId && editing.id === r.stepId ? (
+                      <form className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm" onSubmit={(e) => { e.preventDefault(); saveEdit(); }}>
+                        <input autoFocus value={editing.label} onChange={(e) => setEditing({ ...editing, label: e.target.value })} maxLength={60} aria-label="단계 이름"
+                          className="min-w-0 flex-1 rounded-full border border-stone-200 bg-white px-3 py-1 text-sm" />
+                        <label className="flex items-center gap-1 text-xs text-stone-500">행사일 기준
+                          <input type="number" value={editing.offset} onChange={(e) => setEditing({ ...editing, offset: e.target.value })} aria-label="행사일 기준 일수"
+                            className="w-16 rounded-full border border-stone-200 bg-white px-2 py-1 text-xs" />일
+                          {editing.offset.trim() !== "" && Number.isFinite(Number(editing.offset)) && <b className="text-stone-600">({dLabel(Math.round(Number(editing.offset)))})</b>}
+                        </label>
+                        <button className="rounded-full bg-amber-400 px-3 py-1 text-xs font-bold">저장</button>
+                        <button type="button" onClick={() => setEditing(null)} className="rounded-full bg-stone-100 px-3 py-1 text-xs">취소</button>
+                      </form>
+                    ) : (
+                      <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm">
+                        <input type="checkbox" checked={r.done} onChange={(e) => r.toggle(e.target.checked)} className="h-4 w-4 accent-emerald-500" />
+                        <span className={`flex-1 ${r.done ? "text-stone-400 line-through" : ""}`}>
+                          {r.money && "💰 "}{r.alert && "⚠️ "}{r.label}
+                          {r.isCustom && <span className="ml-1.5 rounded-full bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-700">추가함{r.author ? ` · ${r.author}` : ""}</span>}
+                          {r.edited && <span className="ml-1.5 rounded-full bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500">수정됨</span>}
+                        </span>
+                        {r.stepId && (
+                          <span className="flex shrink-0 gap-0.5 opacity-60 transition group-hover:opacity-100">
+                            <button type="button" title="이름·마감 고치기" aria-label="단계 고치기" className="rounded px-1 hover:bg-stone-100"
+                              onClick={(e) => { stop(e); setEditing({ id: r.stepId!, label: r.label, offset: String(r.offsetDays ?? 0) }); }}>✏️</button>
+                            {r.isCustom ? (
+                              <button type="button" title="이 단계 지우기" aria-label="단계 지우기" className="rounded px-1 hover:bg-stone-100"
+                                onClick={(e) => { stop(e); if (isCustomStepId(r.stepId!)) removeCustomStep(ev.id, r.stepId); }}>🗑</button>
+                            ) : (
+                              <button type="button" title="우리 학교에선 안 하는 단계 숨기기" aria-label="단계 숨기기" className="rounded px-1 hover:bg-stone-100"
+                                onClick={(e) => { stop(e); hideStep(ev.id, r.stepId!); }}>🙈</button>
+                            )}
+                          </span>
+                        )}
+                        <span className={`text-xs ${late ? "font-bold text-red-500" : "text-stone-400"}`}>{late ? "마감 지남 " : ""}{mmdd(r.dueDate)}</span>
+                      </label>
+                    )}
+                    {r.stepMemo && <div className="px-3 pb-2 pl-10 text-xs leading-snug text-sky-800">📝 {r.stepMemo}</div>}
                     {(r.lastYear || r.notes.length > 0) && (
                       <div className="space-y-1 px-3 pb-2 pl-10">
                         {r.lastYear && (
@@ -186,6 +250,70 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
               })}
             </ul>
 
+            {/* 체크리스트 직접 편집: 단계 추가 · 숨긴 단계 다시 보이기 */}
+            <div className="mb-5 space-y-2">
+              {adding ? (
+                <form className="space-y-2 rounded-xl bg-white p-3 text-sm shadow-sm" onSubmit={(e) => { e.preventDefault(); saveAdd(); }}>
+                  <div className="text-xs font-bold text-stone-500">우리 학교에만 있는 단계 추가</div>
+                  <input autoFocus value={adding.label} onChange={(e) => setAdding({ ...adding, label: e.target.value })} maxLength={60}
+                    placeholder="예: 박람회 단체 사전등록" className="w-full rounded-full border border-stone-200 px-3 py-1.5 text-sm" />
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-stone-500">
+                    <label className="flex items-center gap-1">행사
+                      <input type="number" min={0} value={adding.offset} onChange={(e) => setAdding({ ...adding, offset: e.target.value, date: "" })}
+                        className="w-16 rounded-full border border-stone-200 px-2 py-1" aria-label="행사 며칠 전" />일 전
+                    </label>
+                    <span>또는</span>
+                    <input type="date" value={adding.date} onChange={(e) => setAdding({ ...adding, date: e.target.value })} aria-label="마감 날짜"
+                      className="rounded-full border border-stone-200 px-2 py-1" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button disabled={!adding.label.trim()} className="rounded-full bg-amber-400 px-4 py-1.5 text-xs font-bold disabled:opacity-40">추가</button>
+                    <button type="button" onClick={() => setAdding(null)} className="rounded-full bg-stone-100 px-4 py-1.5 text-xs">취소</button>
+                  </div>
+                  <p className="text-[11px] text-stone-400">추가한 단계는 진행률·캘린더·이번 주 마감에 바로 들어가요.</p>
+                </form>
+              ) : (
+                <button type="button" onClick={() => setAdding({ label: "", offset: "14", date: "" })}
+                  className="w-full rounded-xl border border-dashed border-stone-300 py-2 text-sm text-stone-500 hover:bg-white">+ 단계 추가</button>
+              )}
+              {hiddenIds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-stone-400">
+                  숨긴 단계:
+                  {hiddenIds.map((h) => (
+                    <button key={h} type="button" onClick={() => unhideStep(ev.id, h as AnyStepId)} title="다시 보이기"
+                      className="rounded-full bg-stone-100 px-2 py-0.5 text-stone-500 hover:bg-stone-200">{allStepLabels.get(h) ?? h} ↺</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {record && (
+              <section className="mb-5">
+                <h3 className="mb-1 text-sm font-bold text-stone-500">전임자의 고민 기록</h3>
+                <p className="mb-2 text-[11px] text-stone-400">무엇을 골랐는지보다 왜 다른 걸 안 골랐는지가 내년에 더 쓸모 있어요.</p>
+                {record.candidates.length > 0 && (
+                  <ul className="mb-2 space-y-1.5">
+                    {record.candidates.map((c, i) => (
+                      <li key={i} className={`rounded-xl px-3 py-2 text-sm shadow-sm ${c.chosen ? "bg-emerald-50" : "bg-white"}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold ${c.chosen ? "text-emerald-600" : "text-stone-400"}`}>{c.chosen ? "✓ 골랐음" : "✕ 안 고름"}</span>
+                          <span className="rounded-full bg-stone-100 px-1.5 text-[10px] text-stone-500">{c.kind}</span>
+                          <span className="font-medium">{c.name}</span>
+                        </div>
+                        {c.reason && <div className={`mt-0.5 text-xs ${c.chosen ? "text-emerald-700" : "text-stone-500"}`}>{c.chosen ? "이유: " : "안 고른 이유: "}{c.reason}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {record.skipped.length > 0 && (
+                  <div className="rounded-xl bg-white px-3 py-2 text-xs shadow-sm">
+                    <div className="mb-1 font-bold text-stone-500">일부러 생략한 것</div>
+                    <ul className="list-disc space-y-0.5 pl-4 text-stone-600">{record.skipped.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                  </div>
+                )}
+              </section>
+            )}
+
             <h3 className="mb-2 text-sm font-bold text-stone-500">행사 전체 메모</h3>
             <div className="mb-3 space-y-2">
               {notes.length === 0 && <p className="text-sm text-stone-400">단계에 묶이지 않은 메모가 없어요.</p>}
@@ -204,7 +332,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                   {coverage.missingSteps.length > 0 && <div className="text-stone-400">비어 있는 단계: {coverage.missingSteps.map((m) => m.label.split(",")[0]).join(", ")}</div>}
                 </div>
               )}
-              <select value={memoStep} onChange={(e) => setMemoStep(e.target.value as StepId | "")} className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm">
+              <select value={memoStep} onChange={(e) => setMemoStep(e.target.value as AnyStepId | "")} className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm">
                 <option value="">행사 전체</option>
                 {schedule.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
