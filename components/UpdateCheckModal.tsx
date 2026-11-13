@@ -77,7 +77,7 @@ export default function UpdateCheckModal({ onClose, onAdded, onOpenEvent }: {
         <header className="mb-3 flex items-start justify-between gap-2">
           <div>
             <div className="text-xs font-bold text-sky-700">🔄 기준 업데이트 확인</div>
-            <h2 className="text-lg font-bold">공식 출처에서 기준 변경을 찾고 있어요</h2>
+            <h2 className="text-lg font-bold">{phase === "done" ? "공식 출처 확인을 마쳤어요" : "공식 출처에서 기준 변경을 찾고 있어요"}</h2>
           </div>
           <button onClick={onClose} className="rounded-full bg-white px-3 py-1 text-sm shadow-sm">닫기</button>
         </header>
