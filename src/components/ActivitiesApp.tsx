@@ -5,7 +5,7 @@ import { useApp } from "@/lib/state";
 import { DEMO_TODAY, events, guidelines, changes, budgets, venues, activeChanges, parse, matchTrack, tracks } from "@/lib/data";
 import Logo from "./Logo";
 import Calendar from "./Calendar";
-import Widgets, { CareerDistribution } from "./Widgets";
+import Widgets, { CareerDistribution, ProgressList } from "./Widgets";
 import EventLists from "./EventLists";
 import EventDrawer, { type TabKey } from "./EventDrawer";
 import Character, { type CharMode } from "./Character";
@@ -62,8 +62,9 @@ export default function ActivitiesApp() {
           <EventLists s={s} onOpen={openEvent} evs={evs} />
         </div>
         <div className="space-y-4">
-          <CareerDistribution track={track} onTrack={setTrack} />
+          <ProgressList s={s} onOpen={openEvent} evs={evs} />
           <Widgets s={s} onOpen={openEvent} evs={evs} />
+          <CareerDistribution track={track} onTrack={setTrack} />
         </div>
       </div>
 

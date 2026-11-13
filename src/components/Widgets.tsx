@@ -113,21 +113,26 @@ export default function Widgets({ s, onOpen, evs }: { s: Persist; onOpen: (id: s
         </ul>
         <p className="mt-2 text-[11px] text-stone-400">인수인계용 요약이며 실제 집행은 학교회계 시스템에서 해요. 가상 데이터예요.</p>
       </Card>
-      <Card title="행사별 진행률">
-        <ul className="space-y-2.5">
-          {evs.map((e) => {
-            const p = progress(e, s);
-            return (
-              <li key={e.id}>
-                <button onClick={() => onOpen(e.id)} className="block w-full text-left">
-                  <div className="mb-1 flex justify-between text-xs"><span className="truncate">{e.title}</span><span className="text-stone-500">{p}%</span></div>
-                  <div className="h-2 overflow-hidden rounded-full bg-stone-100"><div className={`h-full rounded-full ${e.scope === "교내" ? "bg-emerald-400" : "bg-sky-400"}`} style={{ width: `${p}%` }} /></div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
     </div>
+  );
+}
+
+export function ProgressList({ s, onOpen, evs }: { s: Persist; onOpen: (id: string) => void; evs: EventItem[] }) {
+  return (
+    <Card title="행사별 진행률">
+      <ul className="space-y-2.5">
+        {evs.map((e) => {
+          const p = progress(e, s);
+          return (
+            <li key={e.id}>
+              <button onClick={() => onOpen(e.id)} className="block w-full text-left">
+                <div className="mb-1 flex justify-between text-xs"><span className="truncate">{e.title}</span><span className="text-stone-500">{p}%</span></div>
+                <div className="h-2 overflow-hidden rounded-full bg-stone-100"><div className={`h-full rounded-full ${e.scope === "교내" ? "bg-emerald-400" : "bg-sky-400"}`} style={{ width: `${p}%` }} /></div>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
   );
 }
