@@ -9,6 +9,7 @@ import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
 import type { HandoverNote, ScheduledStep, StepId } from "@/lib/types";
+import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
 
 const PII_LABEL = { name: "이름", phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일" } as const;
@@ -24,6 +25,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const [tab, setTab] = useState<TabKey>(initialTab ?? "check");
   const [memo, setMemo] = useState("");
   const [memoStep, setMemoStep] = useState<StepId | "">("");
+  useLockBodyScroll();
   const ev = events.find((e) => e.id === id);
   if (!ev) return null;
 
@@ -64,7 +66,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-black/20" onClick={onClose}>
-      <aside onClick={(e) => e.stopPropagation()} className="h-full w-full max-w-md overflow-y-auto bg-cream p-6 shadow-xl">
+      <aside onClick={(e) => e.stopPropagation()} className="h-full w-full max-w-md overflow-y-auto overscroll-contain bg-cream p-6 shadow-xl">
         <div className="mb-3 flex items-start justify-between">
           <div>
             <span className={`rounded-full px-2 py-0.5 text-xs font-bold text-white ${color}`}>{ev.scope} · {getTemplate(ev.template).name}</span>

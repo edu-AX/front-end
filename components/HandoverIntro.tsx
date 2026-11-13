@@ -5,9 +5,11 @@ import { diffDays, formatDDay } from "@/lib/dates";
 import { byline, mmdd } from "@/lib/dates-view";
 import { buildHandoverBrief } from "@/lib/handover";
 import { useApp } from "@/lib/state";
+import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 
 export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; onOpen: (id: string) => void }) {
   const { state, today, events, acknowledgeNote, acceptHandover, toggleConfirm } = useApp();
+  useLockBodyScroll();
   const b = buildHandoverBrief(today, state, events);
   const from = b.from.length ? b.from.join(", ") : `${b.fromYear ?? "작년"} 담당 교사`;
   const pct = b.progress.total ? Math.round((b.progress.acknowledged / b.progress.total) * 100) : 100;
@@ -19,8 +21,9 @@ export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; 
   const open = (id: string) => { onDone(); onOpen(id); };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/30 p-3 backdrop-blur-[2px]">
-      <div className="flex max-h-full w-full max-w-6xl flex-col rounded-3xl bg-cream p-5 shadow-2xl">
+    // 넓은 화면(lg): 스크롤 없이 한 화면, 칸마다 안쪽 스크롤 / 좁은 화면: 창 전체가 스크롤 (뒤 페이지는 잠금)
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-stone-900/30 p-3 backdrop-blur-[2px] lg:items-center">
+      <div className="flex w-full max-w-6xl flex-col rounded-3xl bg-cream p-5 shadow-2xl lg:max-h-full">
         <header className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <div>
             <div className="text-xs font-bold text-amber-700">📋 창의적 체험활동부 인수인계</div>
@@ -32,9 +35,9 @@ export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; 
           </div>
         </header>
 
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[1.25fr_1fr]">
+        <div className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[1.25fr_1fr]">
           {/* ① 꼭 알아야 할 주의점 */}
-          <section className="min-h-0 overflow-y-auto rounded-2xl bg-white p-3 shadow-sm">
+          <section className="rounded-2xl bg-white p-3 shadow-sm lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain">
             <h2 className="mb-2 text-sm font-bold">① 꼭 알아야 할 주의점</h2>
             <ul className="space-y-1.5">
               {b.keyPoints.map((p) => (
@@ -54,7 +57,7 @@ export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; 
             </ul>
           </section>
 
-          <div className="flex min-h-0 flex-col gap-3">
+          <div className="flex flex-col gap-3 lg:min-h-0">
             {/* ② 작년과 달라진 기준 */}
             <section className="rounded-2xl bg-white p-3 shadow-sm">
               <h2 className="mb-2 text-sm font-bold">② 작년과 달라진 기준</h2>
@@ -76,7 +79,7 @@ export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; 
             </section>
 
             {/* ③ 행사별 한 줄 */}
-            <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-white p-3 shadow-sm">
+            <section className="rounded-2xl bg-white p-3 shadow-sm lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
               <h2 className="mb-1 text-sm font-bold">③ 올해 행사 — 작년엔 이랬어요</h2>
               <ul className="divide-y divide-stone-100">
                 {b.events.map((e) => (
@@ -97,7 +100,7 @@ export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; 
           </div>
         </div>
 
-        <footer className="mt-3 flex items-center justify-between gap-2">
+        <footer className="sticky bottom-0 -mx-5 -mb-5 mt-3 flex items-center justify-between gap-2 rounded-b-3xl bg-cream px-5 py-3 lg:static lg:m-0 lg:mt-3 lg:p-0">
           <span className="text-[11px] text-stone-400">주의점은 행사 카드의 단계별 기록에서도 다시 볼 수 있어요.</span>
           <button onClick={start} className="rounded-full bg-stone-800 px-6 py-2.5 text-sm font-bold text-white shadow hover:bg-stone-700">
             {b.accepted ? "대시보드로 돌아가기" : "인수 확인하고 시작하기 →"}
