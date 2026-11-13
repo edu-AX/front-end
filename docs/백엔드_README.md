@@ -13,7 +13,7 @@ npm run dev     # http://localhost:3000/api/health
 
 | 경로 | 내용 |
 |---|---|
-| `data/` | 샘플 데이터 (가상 학교 "한빛고등학교", 인천교육청 소속으로 가정) |
+| `data/` | 샘플 데이터 (가상 학교 "인덕고등학교", 인천교육청 소속으로 가정. 학교 이름은 `lib/school.ts`의 `levels.high.school`) |
 | `lib/` | 공통 타입, D-day 역산, 대시보드·캘린더 계산, 마스킹, 챗봇 로직 |
 | `app/api/chat` | 챗봇 — 등록된 자료 안에서만 답하고 출처 칩을 붙임, `DEMO_MODE` 지원 |
 | `app/api/upload/*` | 결과보고서 → 마스킹 미리보기 → 행사 카드 초안 (P1) |
