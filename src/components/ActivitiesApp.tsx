@@ -5,6 +5,7 @@ import { useApp } from "@/lib/state";
 import { DEMO_TODAY, events, guidelines, changes, activeChanges, parse } from "@/lib/data";
 import Calendar from "./Calendar";
 import Widgets from "./Widgets";
+import EventLists from "./EventLists";
 import EventDrawer from "./EventDrawer";
 import Character, { type CharMode } from "./Character";
 import ChatPanel from "./ChatPanel";
@@ -31,7 +32,7 @@ export default function ActivitiesApp() {
     <div className="mx-auto min-h-screen max-w-7xl px-4 pb-32 pt-6">
       <header className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <nav className="text-xs text-stone-500"><Link href="/" className="hover:underline">한빛고등학교</Link> › <Link href="/high" className="hover:underline">고등학교</Link> › 창의적 체험활동부</nav>
+          <nav className="text-xs text-stone-500"><Link href="/" className="hover:underline">한빛고등학교</Link> › <Link href="/high" className="hover:underline">부서 선택</Link> › 창의적 체험활동부</nav>
           <h1 className="text-2xl font-bold">창의적 체험활동부 대시보드</h1>
         </div>
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">데모 기준일 {DEMO_TODAY} · 가상 학교 데이터</span>
@@ -41,6 +42,8 @@ export default function ActivitiesApp() {
         <Calendar year={ym.y} month={ym.m} onMonth={(y, m) => setYm({ y, m })} s={s} onOpen={setOpenId} />
         <Widgets s={s} onOpen={setOpenId} />
       </div>
+
+      <EventLists s={s} onOpen={setOpenId} />
 
       {openId && <EventDrawer id={openId} s={s} update={update} onClose={() => setOpenId(null)} />}
 
