@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/lib/state";
 import { buildDashboard } from "@/lib/dashboard";
 import { formatDDay } from "@/lib/dates";
-import { parse } from "@/lib/dates-view";
+import { parse, shortTitle } from "@/lib/dates-view";
+import { computeSchedule, effectiveEventDate } from "@/lib/schedule";
+import type { ChangeAlert } from "@/lib/types";
 import { matchTrack, tracks } from "@/lib/ext";
 import type { LocalSource } from "@/lib/extAnswer";
 import Logo from "./Logo";
@@ -30,13 +32,39 @@ export default function ActivitiesApp() {
   const [upload, setUpload] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
   const [updates, setUpdates] = useState(false);
-  // 기준 변경을 추가하고 창을 닫으면 아리가 한 번 알려준다
-  const [addedInCheck, setAddedInCheck] = useState(false);
+  // 기준 업데이트 확인 창에서 이번에 추가한 변경들
+  const [addedInCheck, setAddedInCheck] = useState<ChangeAlert[]>([]);
   const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
+  // 마지막으로 연 행사 카드 (아리가 어느 행사를 말할지 고를 때)
+  const lastOpened = useRef<string | null>(null);
+  useEffect(() => { if (open) lastOpened.current = open.id; }, [open]);
+
+  /**
+   * 기준 변경을 추가하고 창을 닫으면:
+   * - 영향받는 단계 중 가장 가까운(오늘 이후) 마감일이 있는 달로 캘린더 이동 → ⚠가 바로 보이게
+   * - 아리가 "새 기준 변경이 있어요! ○○ 카드의 ⚠를 확인해 보세요" 한 번
+   */
   const closeUpdates = () => {
     setUpdates(false);
-    if (addedInCheck) setNotice({ id: Date.now(), text: "새 기준 변경이 있어요! 캘린더의 ⚠를 확인해 보세요." });
-    setAddedInCheck(false);
+    if (addedInCheck.length) {
+      const hits = addedInCheck.flatMap((c) =>
+        c.eventIds.flatMap((id) => {
+          const ev = events.find((e) => e.id === id);
+          if (!ev) return [];
+          const step = c.stepId ? computeSchedule(ev, today, state, undefined, changes).find((s) => s.id === c.stepId) : undefined;
+          return [{ ev, due: step?.dueDate ?? effectiveEventDate(ev, state) }];
+        }),
+      );
+      const upcoming = hits.filter((h) => h.due >= today).sort((a, b) => a.due.localeCompare(b.due));
+      const target = upcoming[0] ?? [...hits].sort((a, b) => b.due.localeCompare(a.due))[0];
+      if (target) setYm({ y: Number(target.due.slice(0, 4)), m: Number(target.due.slice(5, 7)) });
+      const named = hits.find((h) => h.ev.id === lastOpened.current)?.ev ?? target?.ev;
+      setNotice({
+        id: Date.now(),
+        text: named ? `새 기준 변경이 있어요! ${shortTitle(named.title)} 카드의 ⚠를 확인해 보세요` : "새 기준 변경이 있어요! 캘린더의 ⚠를 확인해 보세요",
+      });
+    }
+    setAddedInCheck([]);
   };
 
   const evs = useMemo(() => events.filter((e) => matchTrack(e.id, track)), [events, track]);
@@ -96,7 +124,7 @@ export default function ActivitiesApp() {
       {upload && <UploadModal onClose={() => setUpload(false)} onSaved={(id) => { setUpload(false); setOpen({ id }); }} />}
 
       {needIntro && <HandoverIntro onDone={() => setShowIntro(false)} onOpen={openEvent} />}
-      {updates && <UpdateCheckModal onClose={closeUpdates} onAdded={() => setAddedInCheck(true)} onOpenEvent={openEvent} />}
+      {updates && <UpdateCheckModal onClose={closeUpdates} onAdded={(c) => setAddedInCheck((x) => [...x, c])} onOpenEvent={openEvent} />}
 
       {ready && !ext.hidden && !needIntro && (
         <Character mode={mode} alert={dash.unconfirmedAlertCount > 0 && !chatOpen} greeting={greeting} notice={notice} pos={ext.charPos}

@@ -5,12 +5,15 @@ import { diffDays, formatDDay } from "@/lib/dates";
 import { byline, mmdd } from "@/lib/dates-view";
 import { buildHandoverBrief } from "@/lib/handover";
 import { useApp } from "@/lib/state";
+import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 
 export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; onOpen: (id: string) => void }) {
   const { state, today, events, changes, acknowledgeNote, acceptHandover, toggleConfirm } = useApp();
   useLockBodyScroll();
   const b = buildHandoverBrief(today, state, events, changes);
+  // Esc: "다시 보기"로 연 창은 닫는다. 첫 진입(아직 인수 확인 전)은 담당자가 버튼으로 직접 확인해야 하므로 닫지 않는다
+  useEscape(() => { if (b.accepted) onDone(); });
   const from = b.from.length ? b.from.join(", ") : `${b.fromYear ?? "작년"} 담당 교사`;
   const pct = b.progress.total ? Math.round((b.progress.acknowledged / b.progress.total) * 100) : 100;
 

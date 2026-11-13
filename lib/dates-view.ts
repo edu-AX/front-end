@@ -8,6 +8,9 @@ export const mmdd = (s: DateString) => `${Number(s.slice(5, 7))}/${Number(s.slic
 export const byline = (year: number, author?: string) =>
   author?.includes(String(year)) ? author : `${year} ${author ?? "전임자"}`;
 
+/** "2학년 수학여행 (숙박형)" → "수학여행" (칩·말풍선용) */
+export const shortTitle = (t: string) => t.replace(/\(.*?\)/g, "").replace(/^\s*\d학년\s*/, "").trim();
+
 /** "업체 선정·계약, 사전답사" → "업체 선정·계약" (좁은 위젯용) */
 export const shortStep = (label: string) => label.split(",")[0].split(" / ")[0];
 

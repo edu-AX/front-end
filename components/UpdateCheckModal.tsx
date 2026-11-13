@@ -4,13 +4,13 @@
 import { useEffect, useState } from "react";
 import { apiUrl } from "@/lib/api";
 import { getTemplate } from "@/lib/data";
-import { mmdd } from "@/lib/dates-view";
+import { shortTitle } from "@/lib/dates-view";
 import { useApp } from "@/lib/state";
 import type { ChangeAlert, UpdateCheckResult } from "@/lib/types";
+import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 
 const STEP_MS = 300; // 출처 한 줄씩 체크되는 간격 (4곳 → 1.2초)
-const shortTitle = (t: string) => t.replace(/\(.*?\)/g, "").replace(/^\s*\d학년\s*/, "").trim();
 const dot = (d?: string) => (d ? `${d.slice(0, 4)}.${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}` : "");
 
 export default function UpdateCheckModal({ onClose, onAdded, onOpenEvent }: {
@@ -21,6 +21,7 @@ export default function UpdateCheckModal({ onClose, onAdded, onOpenEvent }: {
 }) {
   const { state, events, changes, addChange } = useApp();
   useLockBodyScroll();
+  useEscape(onClose);
   const [phase, setPhase] = useState<"loading" | "checking" | "done" | "error">("loading");
   const [res, setRes] = useState<UpdateCheckResult | null>(null);
   const [shown, setShown] = useState(0);

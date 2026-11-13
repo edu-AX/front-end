@@ -9,6 +9,7 @@ import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
 import type { ChangeAlert, HandoverNote, ScheduledStep, StepId } from "@/lib/types";
+import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
 
@@ -26,6 +27,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const [memo, setMemo] = useState("");
   const [memoStep, setMemoStep] = useState<StepId | "">("");
   useLockBodyScroll();
+  useEscape(onClose);
   const ev = events.find((e) => e.id === id);
   if (!ev) return null;
 
