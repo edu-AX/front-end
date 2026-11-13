@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
 import { diffDays, formatDDay } from "@/lib/dates";
-import { mmdd } from "@/lib/dates-view";
+import { byline, mmdd } from "@/lib/dates-view";
 import { getChange, getGuideline, getTemplate } from "@/lib/data";
 import { getExt, settlementSteps } from "@/lib/ext";
+import { handoverCoverage } from "@/lib/handover";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
 import type { HandoverNote, ScheduledStep, StepId } from "@/lib/types";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
-import { byline } from "./HandoverIntro";
 
 export type TabKey = "check" | "budget" | "venue" | "owner" | "career";
 const TABS: { key: TabKey; label: string }[] = [
@@ -39,6 +39,8 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   // 단계에 붙은 메모는 체크리스트 줄 아래에서 보여주므로, 여기엔 행사 전체 메모만
   const notes = eventLevelNotes(ev, state);
   const ly = ev.lastYear;
+  // 넘기기: 올해 담당자가 다음 담당자에게 단계별로 남긴 기록 비율
+  const coverage = handoverCoverage(Number(today.slice(0, 4)), state, [ev])[0];
   const rules = ev.officeRules;
   const ruleSource = rules ? getGuideline(rules.sourceId) : undefined;
   const color = ev.scope === "교내" ? "bg-emerald-400" : "bg-sky-400";
@@ -121,7 +123,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
             )}
 
             <h3 className="mb-1 text-sm font-bold text-stone-500">단계별 인수인계 (D-day 역산)</h3>
-            <p className="mb-2 text-[11px] text-stone-400">단계마다 작년 실제 기록과 전임자 메모가 붙어 있어요. 🔴 는 작년에 문제가 있었던 단계예요.</p>
+            <p className="mb-2 text-[11px] text-stone-400">단계마다 작년 실제 기록과 전임자 메모가 붙어 있어요. ⚠ 는 작년에 문제가 있었던 단계예요.</p>
             <ul className="mb-4 space-y-2">
               {rows.map((r) => {
                 const late = !r.done && diffDays(today, r.dueDate) < 0;
@@ -137,9 +139,9 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                       <div className="space-y-1 px-3 pb-2 pl-10">
                         {r.lastYear && (
                           <div className={`text-xs leading-snug ${issue ? "text-red-600" : "text-stone-500"}`}>
-                            {issue ? "🔴 " : "· "}작년 {r.lastYear.actualDate ? mmdd(r.lastYear.actualDate) : "날짜 기록 없음"}
-                            {r.lastYear.memo && ` · ${r.lastYear.memo}`}
-                            {r.lastYear.lateByDays !== null && r.lastYear.lateByDays > 0 && <span className="ml-1 rounded bg-red-100 px-1 text-[10px] font-bold">권장보다 {r.lastYear.lateByDays}일 늦음</span>}
+                            {issue && "⚠ "}작년엔 {r.lastYear.actualDate ? `${mmdd(r.lastYear.actualDate)}에 함` : "날짜 기록 없음"}
+                            {r.lastYear.memo && ` — ${r.lastYear.memo}`}
+                            {r.lastYear.lateByDays !== null && r.lastYear.lateByDays > 0 && <span className="ml-1 font-bold text-orange-600">권장보다 {r.lastYear.lateByDays}일 늦었음</span>}
                           </div>
                         )}
                         {r.notes.map((n, i) => (
@@ -165,6 +167,13 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
             </div>
             <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); if (memo.trim()) { addNote(ev.id, memo.trim(), memoStep || undefined); setMemo(""); } }}>
               <div className="text-xs font-bold text-stone-500">다음 담당자에게 남기기</div>
+              {coverage && (
+                <div className="rounded-xl bg-white px-3 py-2 text-xs shadow-sm">
+                  <div className="flex justify-between"><span>다음 담당자에게 남긴 기록</span><b>{coverage.percent}%</b></div>
+                  <div className="my-1 h-1.5 overflow-hidden rounded-full bg-stone-100"><div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: `${coverage.percent}%` }} /></div>
+                  {coverage.missingSteps.length > 0 && <div className="text-stone-400">비어 있는 단계: {coverage.missingSteps.map((m) => m.label.split(",")[0]).join(", ")}</div>}
+                </div>
+              )}
               <select value={memoStep} onChange={(e) => setMemoStep(e.target.value as StepId | "")} className="w-full rounded-full border border-stone-200 bg-white px-4 py-2 text-sm">
                 <option value="">행사 전체</option>
                 {schedule.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}

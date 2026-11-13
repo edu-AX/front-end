@@ -53,8 +53,8 @@ export default function ActivitiesApp() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button onClick={() => setShowIntro(true)} className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-bold text-stone-800 shadow-sm hover:bg-amber-300">📖 인수인계 다시 보기</button>
           <button onClick={() => setUpload(true)} className="rounded-full bg-stone-800 px-4 py-1.5 text-sm font-bold text-white shadow-sm hover:bg-stone-700">📂 작년 행사 자료 올리기</button>
+          <button onClick={() => setShowIntro(true)} className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-bold text-stone-800 shadow-sm hover:bg-amber-300">📋 인수인계 다시 보기</button>
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">기준일 {today} · 가상 학교 데이터</span>
         </div>
       </header>

@@ -1,7 +1,7 @@
 "use client";
 import { buildDashboard } from "@/lib/dashboard";
 import { diffDays, formatDDay } from "@/lib/dates";
-import { mmdd } from "@/lib/dates-view";
+import { mmdd, relDays, shortStep } from "@/lib/dates-view";
 import { lastYearThisTime } from "@/lib/handover";
 import { budgets, getExt, settlementSteps, studentCounts, tracks, won } from "@/lib/ext";
 import { useApp } from "@/lib/state";
@@ -42,7 +42,10 @@ export function CareerDistribution({ track, onTrack }: { track: string; onTrack:
 /** 작년 실제 기록을 1년 뒤로 옮겼을 때 오늘 앞뒤에 걸리는 단계 */
 export function LastYearThisTime({ onOpen, evs }: { onOpen: (id: string) => void; evs: EventCard[] }) {
   const { today } = useApp();
-  const items = lastYearThisTime(today, evs).slice(0, 4);
+  // 작년에 문제 있었던 단계를 먼저, 그다음 가까운 순 (시연 핵심 장면이 맨 위에 오도록)
+  const items = [...lastYearThisTime(today, evs)]
+    .sort((a, b) => Number(!!b.hadIssue) - Number(!!a.hadIssue))
+    .slice(0, 4);
   return (
     <Card title="📅 작년 이맘때 선생님은">
       {items.length === 0 ? <p className="text-sm text-stone-400">이 시기엔 작년 기록이 없어요.</p> : (
@@ -51,10 +54,13 @@ export function LastYearThisTime({ onOpen, evs }: { onOpen: (id: string) => void
             <li key={`${x.eventId}-${x.stepId}`}>
               <button onClick={() => onOpen(x.eventId)} className={`block w-full rounded-xl px-2 py-1.5 text-left ${x.hadIssue ? "bg-red-50 hover:bg-red-100" : "hover:bg-stone-50"}`}>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-sm leading-snug"><b className="font-semibold">{x.eventTitle}</b><br /><span className="text-stone-500">{x.stepLabel}</span></span>
-                  <span className="shrink-0 text-xs text-stone-400">{x.daysFromToday === 0 ? "오늘" : x.daysFromToday < 0 ? `${-x.daysFromToday}일 전` : `${x.daysFromToday}일 뒤`}</span>
+                  <span className="text-xs leading-snug">
+                    <b className="font-semibold">작년 {mmdd(x.lastYearDate)}</b> · {x.eventTitle} · {shortStep(x.stepLabel)}
+                  </span>
+                  <span className="shrink-0 text-[11px] text-stone-400">{relDays(x.daysFromToday)}</span>
                 </div>
-                {x.memo && <div className={`mt-0.5 text-xs ${x.hadIssue ? "text-red-600" : "text-stone-500"}`}>{x.hadIssue ? "🔴 " : "작년 "}{mmdd(x.lastYearDate)} · {x.memo}</div>}
+                {x.memo && <div className="mt-0.5 text-xs text-stone-600">— {x.memo}</div>}
+                {x.hadIssue && <span className="mt-1 inline-block rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">⚠ 작년에 문제 있었음</span>}
               </button>
             </li>
           ))}

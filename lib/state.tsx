@@ -18,8 +18,12 @@ type Ctx = {
   setEventDate: (eventId: string, date: DateString) => void;
   addNote: (eventId: string, note: string, stepId?: StepId) => void;
   toggleConfirm: (changeId: string) => void;
-  /** 백엔드 상태 도우미(acknowledgeNote, acceptHandover 등)를 그대로 쓰기 위한 범용 업데이트 */
-  update: (fn: (s: ClientState) => ClientState) => void;
+  /** 인수인계 받기: 전임자 메모 "확인" 토글 (noteKey 값) */
+  acknowledgeNote: (key: string) => void;
+  /** 인수인계 받기: "인수 확인하고 시작하기" → handoverAcceptedAt = today() */
+  acceptHandover: () => void;
+  /** 시연 리허설용: 저장된 상태를 지우고 처음(인수인계 받기가 뜨는 상태)으로 */
+  resetDemo: () => void;
   addEvent: (card: EventCard) => void;
   updateExt: (p: Partial<ExtState> | ((s: ExtState) => Partial<ExtState>)) => void;
 };
@@ -45,15 +49,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((p) => ({ ...p, eventDateOverrides: { ...p.eventDateOverrides, [eventId]: date } })), []);
   const addNote = useCallback<Ctx["addNote"]>((eventId, note, stepId) =>
     setState((p) => ({ ...p, extraNotes: { ...p.extraNotes, [eventId]: [...(p.extraNotes[eventId] ?? []), { year: Number(today().slice(0, 4)), note, author: "나", ...(stepId ? { stepId } : {}) }] } })), []);
-  const update = useCallback<Ctx["update"]>((fn) => setState(fn), []);
+  const acknowledgeNote = useCallback<Ctx["acknowledgeNote"]>((key) =>
+    setState((p) => {
+      const cur = p.acknowledgedNoteKeys ?? [];
+      return { ...p, acknowledgedNoteKeys: cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key] };
+    }), []);
+  const acceptHandover = useCallback<Ctx["acceptHandover"]>(() =>
+    setState((p) => ({ ...p, handoverAcceptedAt: today() })), []);
+  const resetDemo = useCallback<Ctx["resetDemo"]>(() => {
+    try { localStorage.removeItem(KEY); localStorage.removeItem(EXT_KEY); } catch {}
+    setState(EMPTY_CLIENT_STATE);
+    setExt(EMPTY_EXT_STATE);
+  }, []);
   const toggleConfirm = useCallback<Ctx["toggleConfirm"]>((id) =>
     setState((p) => ({ ...p, confirmedChangeIds: p.confirmedChangeIds.includes(id) ? p.confirmedChangeIds.filter((x) => x !== id) : [...p.confirmedChangeIds, id] })), []);
   const addEvent = useCallback<Ctx["addEvent"]>((card) => setState((p) => ({ ...p, addedEvents: [...p.addedEvents, card] })), []);
   const updateExt = useCallback<Ctx["updateExt"]>((p) => setExt((prev) => ({ ...prev, ...(typeof p === "function" ? p(prev) : p) })), []);
 
   const events = useMemo(() => allEvents(state), [state]);
-  const value = useMemo(() => ({ state, ext, ready, today: today(), events, setStep, setEventDate, addNote, toggleConfirm, update, addEvent, updateExt }),
-    [state, ext, ready, events, setStep, setEventDate, addNote, toggleConfirm, update, addEvent, updateExt]);
+  const value = useMemo(() => ({ state, ext, ready, today: today(), events, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt }),
+    [state, ext, ready, events, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {
