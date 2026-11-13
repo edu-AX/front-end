@@ -5,10 +5,13 @@ import { byline, mmdd } from "@/lib/dates-view";
 import { getChange, getGuideline, getTemplate } from "@/lib/data";
 import { getExt, settlementSteps } from "@/lib/ext";
 import { handoverCoverage } from "@/lib/handover";
+import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
 import type { HandoverNote, ScheduledStep, StepId } from "@/lib/types";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
+
+const PII_LABEL = { name: "이름", phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일" } as const;
 
 export type TabKey = "check" | "budget" | "venue" | "owner" | "career";
 const TABS: { key: TabKey; label: string }[] = [
@@ -41,6 +44,16 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const ly = ev.lastYear;
   // 넘기기: 올해 담당자가 다음 담당자에게 단계별로 남긴 기록 비율
   const coverage = handoverCoverage(Number(today.slice(0, 4)), state, [ev])[0];
+  // 메모 입력 중 개인정보 실시간 점검 (업로드와 같은 maskPersonalInfo 사용)
+  const masked = memo.trim() ? maskPersonalInfo(memo) : null;
+  const pii = masked && masked.maskCount > 0 ? masked : null;
+  const piiSummary = pii?.hits.map((h) => `${PII_LABEL[h.kind]} ${h.count}`).join(", ");
+  const saveMemo = () => {
+    const text = (pii ? pii.maskedText : memo).trim();
+    if (!text) return;
+    addNote(ev.id, text, memoStep || undefined);
+    setMemo("");
+  };
   const rules = ev.officeRules;
   const ruleSource = rules ? getGuideline(rules.sourceId) : undefined;
   const color = ev.scope === "교내" ? "bg-emerald-400" : "bg-sky-400";
@@ -165,7 +178,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                 </div>
               ))}
             </div>
-            <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); if (memo.trim()) { addNote(ev.id, memo.trim(), memoStep || undefined); setMemo(""); } }}>
+            <form className="mb-4 space-y-2" onSubmit={(e) => { e.preventDefault(); saveMemo(); }}>
               <div className="text-xs font-bold text-stone-500">다음 담당자에게 남기기</div>
               {coverage && (
                 <div className="rounded-xl bg-white px-3 py-2 text-xs shadow-sm">
@@ -179,9 +192,16 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                 {schedule.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
               <div className="flex gap-2">
-                <input value={memo} onChange={(e) => setMemo(e.target.value)} maxLength={300} placeholder="메모 추가 (학생 이름·연락처는 적지 마세요)" className="min-w-0 flex-1 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm" />
-                <button className="rounded-full bg-amber-400 px-4 py-2 text-sm font-bold">추가</button>
+                <input value={memo} onChange={(e) => setMemo(e.target.value)} maxLength={300} placeholder="메모 추가 (학생 이름·연락처는 적지 마세요)"
+                  className={`min-w-0 flex-1 rounded-full border bg-white px-4 py-2 text-sm ${pii ? "border-red-400" : "border-stone-200"}`} />
+                <button className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold ${pii ? "bg-red-500 text-white" : "bg-amber-400"}`}>{pii ? "가려서 저장" : "추가"}</button>
               </div>
+              {pii && (
+                <div className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600">
+                  <b>이름·전화번호로 보이는 내용이 있어요 ({piiSummary})</b>
+                  <div className="mt-0.5 text-red-500">저장되는 내용: {pii.maskedText}</div>
+                </div>
+              )}
             </form>
 
             {(ev.updatedBy || ev.updatedAt) && <p className="text-xs text-stone-400">마지막 수정: {ev.updatedBy ?? "-"} · {ev.updatedAt ?? "-"}</p>}
