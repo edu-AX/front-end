@@ -41,7 +41,7 @@ export default function ActivitiesApp() {
         <div className="flex items-center gap-4">
           <Logo width={120} />
           <div>
-          <nav className="text-xs text-stone-500"><Link href="/" className="hover:underline">한빛고등학교</Link> › <Link href="/high" className="hover:underline">부서 선택</Link> › 창의적 체험활동부</nav>
+          <nav className="text-xs text-stone-500"><Link href="/" className="hover:underline">인덕고등학교</Link> › <Link href="/high" className="hover:underline">부서 선택</Link> › 창의적 체험활동부</nav>
           <h1 className="text-2xl font-bold">창의적 체험활동부 대시보드</h1>
           </div>
         </div>

@@ -1,6 +1,6 @@
 export const levels = {
   middle: { name: "중학교", school: "한빛중학교" },
-  high: { name: "고등학교", school: "한빛고등학교" },
+  high: { name: "고등학교", school: "인덕고등학교" },
 } as const;
 export type Level = keyof typeof levels;
 

@@ -15,7 +15,7 @@
     "safetyChecks": [ { "item": "프로그램 인증 여부(필수)", "result": "인증 확인", "checkedAt": "2026-05-12", "evidence": "인증서 사본" } ],
     "emergency": { "hospital": "(가상) 청풍병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "(가상) 레저업체 B", "contract": "위탁" },
     "history": [ { "year": 2026, "eventId": "E-06", "rating": 3, "memo": "구명조끼 사이즈 부족, 사전 요청 필요" } ] },
-  { "id": "V-05", "name": "한빛고 대강당·운동장(가상)", "type": "교내 공간", "address": "교내", "travelMinutes": 0, "busParking": "-", "capacity": 600, "lastInspectionYear": 2026,
+  { "id": "V-05", "name": "인덕고 대강당·운동장(가상)", "type": "교내 공간", "address": "교내", "travelMinutes": 0, "busParking": "-", "capacity": 600, "lastInspectionYear": 2026,
     "safetyChecks": [ { "item": "수용 인원·비상 동선", "result": "확인", "checkedAt": "2026-02-20", "evidence": "교내 점검표" }, { "item": "우천 시 대체 장소", "result": "체육관 지정", "checkedAt": "2026-02-20", "evidence": "-" } ],
     "emergency": { "hospital": "(가상) 한빛병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "-", "contract": "-" },
     "history": [ { "year": 2026, "eventId": "E-04", "rating": 4, "memo": "대강당 음향 점검은 행사 전날 하기" } ] }
