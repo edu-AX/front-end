@@ -12,6 +12,7 @@ import type { HandoverNote, ScheduledStep, StepId } from "@/lib/types";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
 
 const PII_LABEL = { name: "이름", phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일" } as const;
+const PII_ORDER = ["name", "phone", "studentId", "rrn", "email"] as const;
 
 export type TabKey = "check" | "budget" | "venue" | "owner" | "career";
 const TABS: { key: TabKey; label: string }[] = [
@@ -47,7 +48,9 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   // 메모 입력 중 개인정보 실시간 점검 (업로드와 같은 maskPersonalInfo 사용)
   const masked = memo.trim() ? maskPersonalInfo(memo) : null;
   const pii = masked && masked.maskCount > 0 ? masked : null;
-  const piiSummary = pii?.hits.map((h) => `${PII_LABEL[h.kind]} ${h.count}`).join(", ");
+  const piiSummary = pii?.hits
+    .slice().sort((a, b) => PII_ORDER.indexOf(a.kind) - PII_ORDER.indexOf(b.kind))
+    .map((h) => `${PII_LABEL[h.kind]} ${h.count}`).join(", ");
   const saveMemo = () => {
     const text = (pii ? pii.maskedText : memo).trim();
     if (!text) return;

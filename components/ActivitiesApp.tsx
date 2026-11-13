@@ -40,7 +40,8 @@ export default function ActivitiesApp() {
   const needIntro = ready && (!state.handoverAcceptedAt || showIntro);
   const openEvent = (id: string) => setOpen({ id });
 
-  const openSource = (s: LocalSource) => { if (s.openEventId) setOpen({ id: s.openEventId, tab: s.tab }); };
+  // 출처 칩 → 카드 열기. 채팅창이 카드(메모 입력)를 가리지 않도록 채팅창은 닫는다
+  const openSource = (s: LocalSource) => { if (s.openEventId) { setOpen({ id: s.openEventId, tab: s.tab }); setChatOpen(false); } };
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl px-4 pb-32 pt-6">
