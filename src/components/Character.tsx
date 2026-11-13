@@ -30,7 +30,7 @@ function Bird({ mode, fx, walking, dragging }: { mode: CharMode; fx: Fx; walking
   }
   const cls = dragging ? "bird dangling" : walking ? "bird walking" : "bird";
   return (
-    <motion.svg width="72" height="76" viewBox="0 0 72 76" className={cls}
+    <motion.svg width="86" height="91" viewBox="0 0 72 76" className={cls}
       style={{ transformOrigin: "50% 100%", overflow: "visible" }} animate={animation} transition={transition}>
       {!dragging && <ellipse cx="36" cy="72" rx="18" ry="3" fill="#00000018" />}
       <g className="leg leg-a"><line x1="29" y1="62" x2="29" y2="72" stroke="#FF9A3C" strokeWidth="3.5" strokeLinecap="round" /></g>
