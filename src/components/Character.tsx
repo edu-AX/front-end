@@ -55,12 +55,21 @@ function Bird({ mode, fx, walking, dragging }: { mode: CharMode; fx: Fx; walking
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const REACTIONS: { text: string; fx: Fx; hearts?: boolean }[] = [
-  { text: "안녕하세요! 저는 아리예요 🐥", fx: "jump" },
-  { text: "간질간질~ 😆", fx: "wiggle" },
-  { text: "꾹! 눌렀어요 😳", fx: "squish" },
-  { text: "오늘도 고생 많으세요 💛", fx: "jump", hearts: true },
-  { text: "더블클릭하면 질문할 수 있어요!", fx: "wiggle" },
-  { text: "행사 일정은 확인하셨어요?", fx: "jump" },
+  { text: "선생님, 오늘도 정말 고생 많으세요 💛", fx: "jump", hearts: true },
+  { text: "선생님 덕분에 아이들이 쑥쑥 자라요 🌱", fx: "wiggle" },
+  { text: "파이팅! 선생님은 충분히 잘하고 계세요 💪", fx: "jump" },
+  { text: "처음이라 헷갈려도 괜찮아요, 아리가 옆에 있어요!", fx: "squish" },
+  { text: "한 단계씩 하면 돼요. 하나씩 같이 해봐요 🐥", fx: "wiggle" },
+  { text: "선생님이 최고예요! ⭐", fx: "jump", hearts: true },
+  { text: "잠깐 물 한 잔 마시고 가요 🥤", fx: "squish" },
+  { text: "오늘 하루도 무사히, 무탈하게! 🍀", fx: "wiggle" },
+  { text: "행사 준비하느라 애쓰셨어요 👏", fx: "jump" },
+  { text: "선생님의 노력, 아이들이 다 알고 있어요 💛", fx: "jump", hearts: true },
+  { text: "어려운 일도 선생님이라면 해내실 거예요!", fx: "wiggle" },
+  { text: "수고했어요, 선생님! 오늘도 멋져요 ✨", fx: "squish" },
+  { text: "힘들 땐 아리를 불러요. 응원할게요 📣", fx: "jump" },
+  { text: "선생님 오늘도 화이팅이에요! 🔥", fx: "wiggle" },
+  { text: "잘하고 있어요. 정말로요 😊", fx: "squish", hearts: true },
 ];
 
 export default function Character({ mode, alert, pos, onPos, onChat, onHide }: {
@@ -76,6 +85,7 @@ export default function Character({ mode, alert, pos, onPos, onChat, onHide }: {
   const [bubble, setBubble] = useState<string | null>(null);
   const [fx, setFx] = useState<Fx>(null);
   const [hearts, setHearts] = useState(0);
+  const [alignRight, setAlignRight] = useState(false);
   const [flip, setFlip] = useState(false);
   const [walking, setWalking] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -89,6 +99,7 @@ export default function Character({ mode, alert, pos, onPos, onChat, onHide }: {
   busy.current = mode === "think";
 
   const say = (text: string, ms = 1800) => {
+    setAlignRight(x.get() > window.innerWidth / 2);
     setBubble(text);
     clearTimeout(bubbleTimer.current);
     bubbleTimer.current = setTimeout(() => setBubble(null), ms);
@@ -123,9 +134,11 @@ export default function Character({ mode, alert, pos, onPos, onChat, onHide }: {
 
   const onSingleClick = () => {
     stopWalk();
-    const r = REACTIONS[idx.current % REACTIONS.length];
-    idx.current += 1 + Math.floor(Math.random() * 2);
-    say(r.text); play(r.fx);
+    let n = Math.floor(Math.random() * REACTIONS.length);
+    if (n === idx.current) n = (n + 1) % REACTIONS.length; // 같은 말이 연속으로 나오지 않게
+    idx.current = n;
+    const r = REACTIONS[n];
+    say(r.text, 2600); play(r.fx);
     if (r.hearts) setHearts((n) => n + 1);
   };
 
@@ -147,7 +160,7 @@ export default function Character({ mode, alert, pos, onPos, onChat, onHide }: {
       }}
       className="cursor-grab select-none active:cursor-grabbing">
       {(bubble || alert) && (
-        <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-semibold shadow">
+        <div className={`absolute bottom-full mb-2 w-max max-w-[230px] rounded-2xl bg-white px-3 py-1.5 text-xs font-semibold leading-snug shadow ${alignRight ? "right-0 text-right" : "left-0"}`}>
           {bubble ?? "❗ 확인할 변경 알림이 있어요"}
         </div>
       )}
