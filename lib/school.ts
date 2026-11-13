@@ -1,6 +1,8 @@
+import { SCHOOL } from "./school-info"; // 백엔드에서 동기화되는 파일 (챗봇과 같은 학교 이름)
+
 export const levels = {
-  middle: { name: "중학교", school: "한빛중학교" },
-  high: { name: "고등학교", school: "인덕고등학교" },
+  middle: { name: "중학교", school: SCHOOL.middle },
+  high: { name: "고등학교", school: SCHOOL.high },
 } as const;
 export type Level = keyof typeof levels;
 

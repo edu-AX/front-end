@@ -4,3 +4,5 @@ node_modules
 .env
 next-env.d.ts
 *.tsbuildinfo
+# npm run sync:backend 가 백엔드 저장소를 받아 두는 곳
+.backend-cache/

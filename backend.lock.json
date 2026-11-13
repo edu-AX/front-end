@@ -1,0 +1,22 @@
+{
+  "repo": "https://github.com/edu-AX/back-end.git",
+  "branch": "main",
+  "commit": "cdd2971fb7c9bb767eeae053013c2297ff3e2e9c",
+  "files": [
+    "lib/types.ts",
+    "lib/dates.ts",
+    "lib/data.ts",
+    "lib/schedule.ts",
+    "lib/dashboard.ts",
+    "lib/handover.ts",
+    "lib/masking.ts",
+    "lib/school-info.ts",
+    "lib/upload/draft.ts",
+    "lib/chat/prompt.ts",
+    "lib/chat/messages.ts",
+    "data/events.json",
+    "data/templates.json",
+    "data/guidelines.json",
+    "data/changes.json"
+  ]
+}

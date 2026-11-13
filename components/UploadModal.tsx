@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { addDays, today as todayFn } from "@/lib/dates";
+import { apiUrl } from "@/lib/api";
 import { useApp } from "@/lib/state";
 import { draftToEventCard } from "@/lib/upload/draft";
 import type { EventDraft, MaskKind, TemplateId } from "@/lib/types";
@@ -27,7 +28,7 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
     setBusy(true); setErr(null);
     try {
       const fd = new FormData(); fd.append("file", file);
-      const r = await fetch("/api/upload/extract", { method: "POST", body: fd });
+      const r = await fetch(apiUrl("/api/upload/extract"), { method: "POST", body: fd });
       const d = await r.json();
       if (!r.ok || d.error) throw new Error(d.error ?? "파일을 처리하지 못했어요");
       setEx(d); setStep(2);
@@ -39,7 +40,7 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
     if (!ex) return;
     setBusy(true); setErr(null);
     try {
-      const r = await fetch("/api/upload/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ maskedText: ex.maskedText }) });
+      const r = await fetch(apiUrl("/api/upload/draft"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ maskedText: ex.maskedText }) });
       const d = await r.json();
       if (!r.ok || d.error) throw new Error(d.error ?? "초안을 만들지 못했어요");
       setDraft(d.draft); setMode(d.mode); setNextDate(nextYear(d.draft.eventDate)); setStep(3);

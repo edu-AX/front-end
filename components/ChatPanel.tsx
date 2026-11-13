@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { answerExt, type LocalResponse, type LocalSource } from "@/lib/extAnswer";
+import { apiUrl } from "@/lib/api";
 import { useApp } from "@/lib/state";
 
 export type Msg = { role: "user" | "bot"; text: string; sources?: LocalSource[]; mode?: string };
@@ -35,7 +36,7 @@ export default function ChatPanel({ open, onClose, hidden, onSummon, onSource, s
       } else {
         const { addedEvents: _omit, ...clientState } = state;
         void _omit;
-        const r = await fetch("/api/chat", {
+        const r = await fetch(apiUrl("/api/chat"), {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: q, focusEventId, state: clientState }),
         });
