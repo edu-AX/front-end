@@ -1,11 +1,13 @@
 "use client";
-// 화면 상태. 백엔드와 약속한 ClientState 는 localStorage "handover:v1" 에 그대로 저장합니다.
+// 화면 상태. 백엔드와 약속한 ClientState 는 저장소 어댑터(lib/storage.ts)를 통해서만 읽고 씁니다.
+// (지금은 localStorage "handover:v1". 서버 저장으로 바꿀 때는 lib/storage.ts 만 교체)
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { today } from "./dates";
 import { allEvents, EMPTY_EXT_STATE, type ExtState } from "./ext";
+import { handoverStorage, LOCAL_STATE_KEY, STORAGE_SCOPE } from "./storage";
 import { EMPTY_CLIENT_STATE, type ClientState, type DateString, type EventCard, type StepId, type StepState } from "./types";
 
-const KEY = "handover:v1";
+/** 화면 전용 상태(캐릭터 위치 등). 인수인계 기록이 아니라서 브라우저에만 둔다 */
 const EXT_KEY = "handover:ext:v1";
 
 type Ctx = {
@@ -29,8 +31,9 @@ type Ctx = {
 };
 const C = createContext<Ctx | null>(null);
 
+/** 시연 초기화용. 데모 저장소(localStorage)만 지운다 — 서버 저장소로 바꾸면 초기화는 하지 않는다 */
 function clearStored() {
-  try { localStorage.removeItem(KEY); localStorage.removeItem(EXT_KEY); } catch {}
+  try { localStorage.removeItem(LOCAL_STATE_KEY); localStorage.removeItem(EXT_KEY); } catch {}
 }
 
 function load<T>(key: string, empty: T): T {
@@ -51,9 +54,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       url.searchParams.delete("reset");
       window.history.replaceState(null, "", url.pathname + url.search + url.hash);
     }
-    setState(load(KEY, EMPTY_CLIENT_STATE)); setExt(load(EXT_KEY, EMPTY_EXT_STATE)); setReady(true);
+    setExt(load(EXT_KEY, EMPTY_EXT_STATE));
+    let alive = true;
+    handoverStorage.load(STORAGE_SCOPE.schoolId, STORAGE_SCOPE.deptId).then((s) => {
+      if (!alive) return;
+      setState(s ?? EMPTY_CLIENT_STATE);
+      setReady(true);
+    });
+    return () => { alive = false; };
   }, []);
-  useEffect(() => { if (ready) try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }, [state, ready]);
+  useEffect(() => { if (ready) void handoverStorage.save(STORAGE_SCOPE.schoolId, STORAGE_SCOPE.deptId, state); }, [state, ready]);
   useEffect(() => { if (ready) try { localStorage.setItem(EXT_KEY, JSON.stringify(ext)); } catch {} }, [ext, ready]);
 
   const setStep = useCallback<Ctx["setStep"]>((eventId, stepId, st) =>
