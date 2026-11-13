@@ -87,7 +87,7 @@ export default function ActivitiesApp() {
 
       {ready && !s.hidden && (
         <Character mode={mode} alert={hasAlert && !chatOpen} pos={s.charPos}
-          onPos={(p) => update({ charPos: p })} onClick={() => setChatOpen(true)} onHide={() => { update({ hidden: true }); }} />
+          onPos={(p) => update({ charPos: p })} onChat={() => setChatOpen(true)} onHide={() => { update({ hidden: true }); }} />
       )}
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} hidden={ready && s.hidden} openChat={() => setChatOpen(true)}
         onSummon={() => { update({ hidden: false }); setChatOpen(false); }} onSource={openSource} setThinking={(b) => setMode(b ? "think" : "idle")} />

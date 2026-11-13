@@ -9,5 +9,8 @@ body { background: #FFF8EC; color: #3b3a36; }
 .walking .leg-a { animation: legswing 0.4s ease-in-out infinite alternate; }
 .walking .leg-b { animation: legswing 0.4s ease-in-out infinite alternate-reverse; }
 @keyframes legswing { from { transform: rotate(-30deg); } to { transform: rotate(30deg); } }
+.dangling .leg { transform-box: fill-box; transform-origin: 50% 0; }
+.dangling .leg-a { animation: legswing 0.35s ease-in-out infinite alternate; }
+.dangling .leg-b { animation: legswing 0.35s ease-in-out infinite alternate-reverse; }
 .blink { transform-box: fill-box; transform-origin: center; animation: blink 4s infinite; }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }

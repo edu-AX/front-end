@@ -43,7 +43,7 @@ export default function ChatPanel({ open, onClose, hidden, onSummon, onSource, s
     <>
       {open && (
         <div className={`fixed right-4 z-40 flex h-[460px] w-[340px] flex-col rounded-3xl bg-cream shadow-2xl ${hidden ? "bottom-20" : "bottom-4"}`}>
-          <div className="flex items-center justify-between rounded-t-3xl bg-amber-300 px-4 py-2.5 font-bold">한빛이에게 물어보기<button onClick={onClose} className="text-sm font-normal">닫기</button></div>
+          <div className="flex items-center justify-between rounded-t-3xl bg-amber-300 px-4 py-2.5 font-bold">아리에게 물어보기<button onClick={onClose} className="text-sm font-normal">닫기</button></div>
           <div className="flex-1 space-y-2 overflow-y-auto p-3 text-sm">
             {msgs.map((m, i) => (
               <div key={i} className={m.role === "user" ? "text-right" : ""}>
