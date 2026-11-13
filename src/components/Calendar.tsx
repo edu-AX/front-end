@@ -1,13 +1,13 @@
 "use client";
 import { useMemo } from "react";
-import { events, eventDate, buildSteps, activeChanges, parse, type Persist } from "@/lib/data";
+import { eventDate, buildSteps, activeChanges, parse, type EventItem, type Persist } from "@/lib/data";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 type Item = { id: string; kind: "event" | "step"; label: string; scope: string; warn: boolean };
 
-export default function Calendar({ year, month, onMonth, s, onOpen }: {
-  year: number; month: number; onMonth: (y: number, m: number) => void; s: Persist; onOpen: (id: string) => void;
+export default function Calendar({ year, month, onMonth, s, onOpen, evs }: {
+  year: number; month: number; onMonth: (y: number, m: number) => void; s: Persist; onOpen: (id: string) => void; evs: EventItem[];
 }) {
   const cells = useMemo(() => {
     const first = new Date(Date.UTC(year, month - 1, 1));
@@ -20,7 +20,7 @@ export default function Calendar({ year, month, onMonth, s, onOpen }: {
 
   const items = useMemo(() => {
     const map: Record<string, Item[]> = {};
-    for (const ev of events) {
+    for (const ev of evs) {
       const warn = activeChanges(ev, s).length > 0;
       (map[eventDate(ev, s)] ||= []).push({ id: ev.id, kind: "event", label: ev.title, scope: ev.scope, warn });
       for (const st of buildSteps(ev, s)) {
@@ -29,7 +29,7 @@ export default function Calendar({ year, month, onMonth, s, onOpen }: {
       }
     }
     return map;
-  }, [s]);
+  }, [s, evs]);
 
   const move = (n: number) => {
     const d = new Date(Date.UTC(year, month - 1 + n, 1));

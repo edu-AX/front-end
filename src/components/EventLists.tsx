@@ -1,9 +1,9 @@
 "use client";
-import { events, eventDate, dday, ddayLabel, progress, nextStep, mmdd, type Persist } from "@/lib/data";
+import { eventDate, dday, ddayLabel, progress, nextStep, mmdd, type EventItem, type Persist } from "@/lib/data";
 
-function Column({ scope, s, onOpen }: { scope: "교내" | "교외"; s: Persist; onOpen: (id: string) => void }) {
+function Column({ scope, s, onOpen, evs }: { scope: "교내" | "교외"; s: Persist; onOpen: (id: string) => void; evs: EventItem[] }) {
   const inside = scope === "교내";
-  const list = events.filter((e) => e.scope === scope).sort((a, b) => eventDate(a, s).localeCompare(eventDate(b, s)));
+  const list = evs.filter((e) => e.scope === scope).sort((a, b) => eventDate(a, s).localeCompare(eventDate(b, s)));
   return (
     <section className={`rounded-3xl p-5 shadow-sm ${inside ? "bg-emerald-50" : "bg-sky-50"}`}>
       <h3 className="mb-3 flex items-center gap-2 text-lg font-bold">
@@ -36,11 +36,11 @@ function Column({ scope, s, onOpen }: { scope: "교내" | "교외"; s: Persist; 
   );
 }
 
-export default function EventLists({ s, onOpen }: { s: Persist; onOpen: (id: string) => void }) {
+export default function EventLists({ s, onOpen, evs }: { s: Persist; onOpen: (id: string) => void; evs: EventItem[] }) {
   return (
     <div className="mt-4 grid gap-4 md:grid-cols-2">
-      <Column scope="교내" s={s} onOpen={onOpen} />
-      <Column scope="교외" s={s} onOpen={onOpen} />
+      <Column scope="교내" s={s} onOpen={onOpen} evs={evs} />
+      <Column scope="교외" s={s} onOpen={onOpen} evs={evs} />
     </div>
   );
 }

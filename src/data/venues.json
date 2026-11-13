@@ -1,0 +1,22 @@
+[
+  { "id": "V-01", "name": "(가상) 파란바다 청소년수련원", "type": "청소년수련시설", "address": "(가상 주소) 인천 ○○구", "travelMinutes": 90, "busParking": "가능(대형 4대)", "capacity": 400, "lastInspectionYear": 2025,
+    "safetyChecks": [ { "item": "허가·등록 수련시설 여부", "result": "확인", "checkedAt": "2026-03-10", "evidence": "등록증 사본" }, { "item": "종합평가 결과", "result": "우수", "checkedAt": "2026-03-10", "evidence": "평가 결과 공문" } ],
+    "emergency": { "hospital": "(가상) 한결병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "(가상) 수련원 직영", "contract": "위탁 패키지" },
+    "history": [ { "year": 2026, "eventId": "E-06", "rating": 4, "memo": "강당 음향 약함, 마이크 지참" } ] },
+  { "id": "V-02", "name": "(가상) 해솔 리조트", "type": "숙박시설", "address": "(가상 주소) 강원 ○○시", "travelMinutes": 240, "busParking": "가능(대형 6대)", "capacity": 220, "lastInspectionYear": 2026,
+    "safetyChecks": [ { "item": "지자체 안전점검 결과", "result": "적합", "checkedAt": "2026-04-02", "evidence": "지자체 점검 결과 통보서" }, { "item": "소방·전기·가스 개별 점검", "result": "해당 없음(지자체 점검 확인)", "checkedAt": "2026-04-02", "evidence": "-" } ],
+    "emergency": { "hospital": "(가상) 동해병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○경찰서" }, "vendor": { "name": "(가상) 여행사 A", "contract": "위탁 패키지(안전요원 포함)" },
+    "history": [ { "year": 2026, "eventId": "E-03", "rating": 4, "memo": "비상구 위치가 객실 층마다 달라 안내 필요" } ] },
+  { "id": "V-03", "name": "(가상) 미래과학관", "type": "1일형 체험시설", "address": "(가상 주소) 서울 ○○구", "travelMinutes": 70, "busParking": "가능(대형 3대)", "capacity": 300, "lastInspectionYear": 2025,
+    "safetyChecks": [ { "item": "지자체 안전점검 또는 사전답사", "result": "사전답사 실시", "checkedAt": "2026-03-20", "evidence": "사전답사 결과 보고" }, { "item": "3시간 이상 프로그램 인증 여부", "result": "해당 없음", "checkedAt": "2026-03-20", "evidence": "-" } ],
+    "emergency": { "hospital": "(가상) 미래병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "(가상) 학교 직영", "contract": "학교 직영" },
+    "history": [ { "year": 2026, "eventId": "E-02", "rating": 5, "memo": "점심 장소가 좁아 조를 나눠 식사해야 함" } ] },
+  { "id": "V-04", "name": "(가상) 청풍 래프팅장", "type": "수상·레저 체험", "address": "(가상 주소) 강원 ○○군", "travelMinutes": 150, "busParking": "가능(대형 2대)", "capacity": 120, "lastInspectionYear": 2024,
+    "safetyChecks": [ { "item": "프로그램 인증 여부(필수)", "result": "인증 확인", "checkedAt": "2026-05-12", "evidence": "인증서 사본" } ],
+    "emergency": { "hospital": "(가상) 청풍병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "(가상) 레저업체 B", "contract": "위탁" },
+    "history": [ { "year": 2026, "eventId": "E-06", "rating": 3, "memo": "구명조끼 사이즈 부족, 사전 요청 필요" } ] },
+  { "id": "V-05", "name": "한빛고 대강당·운동장(가상)", "type": "교내 공간", "address": "교내", "travelMinutes": 0, "busParking": "-", "capacity": 600, "lastInspectionYear": 2026,
+    "safetyChecks": [ { "item": "수용 인원·비상 동선", "result": "확인", "checkedAt": "2026-02-20", "evidence": "교내 점검표" }, { "item": "우천 시 대체 장소", "result": "체육관 지정", "checkedAt": "2026-02-20", "evidence": "-" } ],
+    "emergency": { "hospital": "(가상) 한빛병원 응급실", "fire": "(가상) ○○소방서", "police": "(가상) ○○지구대" }, "vendor": { "name": "-", "contract": "-" },
+    "history": [ { "year": 2026, "eventId": "E-04", "rating": 4, "memo": "대강당 음향 점검은 행사 전날 하기" } ] }
+]

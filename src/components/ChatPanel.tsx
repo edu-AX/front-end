@@ -4,7 +4,7 @@ import type { Source } from "@/lib/answer";
 
 export type Msg = { role: "user" | "bot"; text: string; sources?: Source[] };
 
-const samples = ["수학여행 동의율은 몇 % 넘어야 해?", "안전요원은 몇 명 필요해?", "사고 나면 교사 책임은?", "진로활동 특기사항 글자 수는?"];
+const samples = ["수학여행 동의율은 몇 % 넘어야 해?", "사고 나면 교사 책임은?", "작년 수학여행 1인당 얼마였어?", "그 수련원 마지막 점검 언제야?"];
 
 export default function ChatPanel({ open, onClose, hidden, onSummon, onSource, setThinking, openChat }: {
   open: boolean; onClose: () => void; hidden: boolean; onSummon: () => void; openChat: () => void;
