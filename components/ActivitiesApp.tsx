@@ -78,6 +78,28 @@ export default function ActivitiesApp() {
   const needIntro = ready && (!state.handoverAcceptedAt || showIntro);
   const openEvent = (id: string) => setOpen({ id });
 
+  // 행사 화면은 전체 화면 페이지처럼: 열면 브라우저 기록을 하나 쌓고, "뒤로"(화면 버튼·브라우저 뒤로·Esc)로 닫는다
+  const pushedHistory = useRef(false);
+  useEffect(() => {
+    if (open && !pushedHistory.current) {
+      window.history.pushState({ eventPage: true }, "");
+      pushedHistory.current = true;
+    }
+  }, [open]);
+  useEffect(() => {
+    const onPop = () => {
+      if (!pushedHistory.current) return;
+      pushedHistory.current = false;
+      setOpen(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  const closeEvent = () => {
+    if (pushedHistory.current) window.history.back(); // popstate 에서 닫힘
+    else setOpen(null);
+  };
+
   // 출처 칩 → 카드 열기. 채팅창이 카드(메모 입력)를 가리지 않도록 채팅창은 닫는다
   const openSource = (s: LocalSource) => { if (s.openEventId) { setOpen({ id: s.openEventId, tab: s.tab }); setChatOpen(false); } };
 
@@ -120,7 +142,7 @@ export default function ActivitiesApp() {
         </div>
       </div>
 
-      {open && <EventDrawer key={`${open.id}-${open.tab ?? ""}`} id={open.id} tab={open.tab} onClose={() => setOpen(null)} />}
+      {open && <EventDrawer key={`${open.id}-${open.tab ?? ""}`} id={open.id} tab={open.tab} onClose={closeEvent} />}
       {upload && <UploadModal onClose={() => setUpload(false)} onSaved={(id) => { setUpload(false); setOpen({ id }); }} />}
 
       {needIntro && <HandoverIntro onDone={() => setShowIntro(false)} onOpen={openEvent} />}
