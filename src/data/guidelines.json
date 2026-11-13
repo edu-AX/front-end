@@ -1,6 +1,0 @@
-[
-  { "id": "G-INC-01", "title": "인천광역시교육청 현장체험학습 운영 매뉴얼(데모용 요약)", "year": 2026, "status": "시행", "scope": "인천", "sections": ["동의율: 학년 전체 학부모 80% 이상", "안전요원: 학생 50명당 1명(100명 이상 시)", "※ 데모용 값입니다. 원문 확인 후 확정 필요"], "sourceUrl": "https://www.yugacrew.com/crewletter/school-trip-consent-safety" },
-  { "id": "G-NAT-01", "title": "2026학년도 학교생활기록부 기재요령", "year": 2026, "status": "시행", "scope": "전국", "sections": ["창체 진로활동 특기사항: 700자 → 500자", "행동특성 및 종합의견: 500자 → 300자(전 학년)"], "sourceUrl": "https://star.moe.go.kr/web/contents/m30103.do?id=115429&schM=view" },
-  { "id": "G-NAT-02", "title": "학교안전법 현행 기준 — 교사 면책", "year": 2026, "status": "시행", "scope": "전국", "sections": ["현행: 안전조치 의무를 다한 경우 교사 책임을 면함"], "sourceUrl": "https://www.hangyo.com/mobile/article.html?no=104608" },
-  { "id": "G-NAT-03", "title": "학교안전법 개정안 — 교사 면책 범위 명확화", "year": 2026, "status": "추진 중", "scope": "전국", "sections": ["개정안: 고의·중과실이 없으면 면책", "국회 통과 여부 미확인 — 현행 기준은 그대로 적용"], "sourceUrl": "https://hangyo.com/news/article.html?no=108733" }
-]

@@ -1,0 +1,155 @@
+[
+  {
+    "id": "B-03",
+    "eventId": "E-07",
+    "year": 2027,
+    "sources": [
+      {
+        "type": "학교회계",
+        "planned": 2000000,
+        "spent": 300000,
+        "transferable": true
+      },
+      {
+        "type": "교육청 지원금",
+        "planned": 8000000,
+        "spent": 0,
+        "transferable": false
+      },
+      {
+        "type": "수익자부담",
+        "planned": 54000000,
+        "spent": 5400000,
+        "transferable": false,
+        "perStudent": 300000
+      }
+    ],
+    "items": [
+      {
+        "name": "교통",
+        "planned": 12000000
+      },
+      {
+        "name": "숙박",
+        "planned": 24000000
+      },
+      {
+        "name": "식비",
+        "planned": 10800000
+      },
+      {
+        "name": "프로그램",
+        "planned": 8000000
+      },
+      {
+        "name": "안전요원·보험",
+        "planned": 6000000
+      },
+      {
+        "name": "기타",
+        "planned": 3200000
+      }
+    ],
+    "settlement": {
+      "dueDaysAfterEvent": 10,
+      "disclosureDaysAfterSettlement": 10,
+      "officeSource": "G-INC-01"
+    },
+    "lastYear": {
+      "total": 61000000,
+      "perStudent": 285000,
+      "memo": "버스 1대가 부족해 추가 계약(약 280만원)"
+    }
+  },
+  {
+    "id": "B-02",
+    "eventId": "E-02",
+    "year": 2027,
+    "sources": [
+      {
+        "type": "학교회계",
+        "planned": 500000,
+        "spent": 0,
+        "transferable": true
+      },
+      {
+        "type": "교육청 지원금",
+        "planned": 1000000,
+        "spent": 0,
+        "transferable": false
+      },
+      {
+        "type": "수익자부담",
+        "planned": 6300000,
+        "spent": 0,
+        "transferable": false,
+        "perStudent": 35000
+      }
+    ],
+    "items": [
+      {
+        "name": "교통",
+        "planned": 3000000
+      },
+      {
+        "name": "입장·프로그램",
+        "planned": 3200000
+      },
+      {
+        "name": "안전요원·보험",
+        "planned": 1100000
+      },
+      {
+        "name": "기타",
+        "planned": 500000
+      }
+    ],
+    "settlement": {
+      "dueDaysAfterEvent": 10,
+      "disclosureDaysAfterSettlement": 10,
+      "officeSource": "G-INC-01"
+    },
+    "lastYear": {
+      "total": 7200000,
+      "perStudent": 32000,
+      "memo": "단체 입장 할인 협의로 1인당 3천원 절감"
+    }
+  },
+  {
+    "id": "B-04",
+    "eventId": "E-03",
+    "year": 2027,
+    "sources": [
+      {
+        "type": "학교회계",
+        "planned": 3000000,
+        "spent": 0,
+        "transferable": true
+      }
+    ],
+    "items": [
+      {
+        "name": "시상품",
+        "planned": 800000
+      },
+      {
+        "name": "음료·간식",
+        "planned": 1200000
+      },
+      {
+        "name": "장비·소모품",
+        "planned": 700000
+      },
+      {
+        "name": "기타",
+        "planned": 300000
+      }
+    ],
+    "settlement": null,
+    "lastYear": {
+      "total": 2800000,
+      "perStudent": null,
+      "memo": "우천 대비 천막 대여를 추가로 편성했음"
+    }
+  }
+]

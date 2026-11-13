@@ -1,0 +1,234 @@
+{
+  "E-01": {
+    "careerTracks": [],
+    "linkedSubjects": [],
+    "creativeArea": "동아리",
+    "target": "전교생",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-02": {
+    "careerTracks": [],
+    "linkedSubjects": [],
+    "creativeArea": "자율·자치",
+    "target": "1학년 전체",
+    "budgetId": "B-02",
+    "venueIds": [
+      "V-03"
+    ],
+    "ownerHistory": [
+      {
+        "year": 2026,
+        "role": "주담당",
+        "name": null,
+        "consentToShow": false,
+        "contact": null,
+        "notes": {
+          "good": "단체 입장 할인 협의로 경비 절감",
+          "problem": "버스 출발 시간이 겹쳐 지연됨",
+          "nextYear": "버스 업체를 3월 초에 확정하기"
+        }
+      }
+    ]
+  },
+  "E-07": {
+    "careerTracks": [],
+    "linkedSubjects": [],
+    "creativeArea": "자율·자치",
+    "target": "2학년 전체(테마별 코스 선택)",
+    "budgetId": "B-03",
+    "venueIds": [
+      "V-02"
+    ],
+    "ownerHistory": [
+      {
+        "year": 2026,
+        "role": "주담당",
+        "name": "김○○",
+        "consentToShow": true,
+        "contact": "교내 메신저로 연결",
+        "notes": {
+          "good": "동의서 회수는 담임 단톡보다 가정통신문 앱이 빨랐음",
+          "problem": "버스 1대가 부족해 추가 계약을 했음",
+          "nextYear": "숙소 비상구 확인을 사전답사 첫날에 끝내기"
+        }
+      },
+      {
+        "year": 2025,
+        "role": "공동",
+        "name": null,
+        "consentToShow": false,
+        "contact": null,
+        "notes": {
+          "good": "업체 위탁 패키지로 안전요원 포함 계약",
+          "problem": "정산 서류가 늦게 모여 공개 기한이 촉박했음",
+          "nextYear": "정산 서류 제출 마감을 행사 후 5일로 앞당기기"
+        }
+      }
+    ]
+  },
+  "E-03": {
+    "careerTracks": [],
+    "linkedSubjects": [],
+    "creativeArea": "자율·자치",
+    "target": "전교생",
+    "budgetId": "B-04",
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": [
+      {
+        "year": 2026,
+        "role": "주담당",
+        "name": null,
+        "consentToShow": false,
+        "contact": null,
+        "notes": {
+          "good": "학급 대표 회의를 2주 전에 열어 종목 갈등이 적었음",
+          "problem": "우천으로 하루 연기되어 시상품 보관이 문제였음",
+          "nextYear": "예비일과 체육관 대체 종목을 계획서에 미리 넣기"
+        }
+      }
+    ]
+  },
+  "E-04": {
+    "careerTracks": [
+      "공학",
+      "자연"
+    ],
+    "linkedSubjects": [
+      "(가상) 진로와 직업",
+      "(가상) 과학탐구실험"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-05": {
+    "careerTracks": [],
+    "linkedSubjects": [],
+    "creativeArea": "자율·자치",
+    "target": "1학년 전체",
+    "budgetId": null,
+    "venueIds": [
+      "V-01",
+      "V-04"
+    ],
+    "ownerHistory": []
+  },
+  "E-06": {
+    "careerTracks": [
+      "예체능"
+    ],
+    "linkedSubjects": [
+      "(가상) 음악 연주",
+      "(가상) 미술 창작"
+    ],
+    "creativeArea": "동아리",
+    "target": "전교생",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-08": {
+    "careerTracks": [
+      "공학"
+    ],
+    "linkedSubjects": [
+      "(가상) 인공지능 기초",
+      "(가상) 정보 과학"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자(2학년)",
+    "budgetId": null,
+    "venueIds": [],
+    "ownerHistory": []
+  },
+  "E-09": {
+    "careerTracks": [
+      "자연"
+    ],
+    "linkedSubjects": [
+      "(가상) 물리학 실험",
+      "(가상) 화학 실험"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자(2학년)",
+    "budgetId": null,
+    "venueIds": [
+      "V-03"
+    ],
+    "ownerHistory": []
+  },
+  "E-10": {
+    "careerTracks": [
+      "의약"
+    ],
+    "linkedSubjects": [
+      "(가상) 생명과학 심화",
+      "(가상) 보건과 건강"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-11": {
+    "careerTracks": [
+      "인문"
+    ],
+    "linkedSubjects": [
+      "(가상) 독서 토론과 글쓰기",
+      "(가상) 철학"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-12": {
+    "careerTracks": [
+      "사회"
+    ],
+    "linkedSubjects": [
+      "(가상) 정치와 법",
+      "(가상) 사회문제 탐구"
+    ],
+    "creativeArea": "진로",
+    "target": "희망자(2학년)",
+    "budgetId": null,
+    "venueIds": [
+      "V-05"
+    ],
+    "ownerHistory": []
+  },
+  "E-13": {
+    "careerTracks": [
+      "교육"
+    ],
+    "linkedSubjects": [
+      "(가상) 교육의 이해",
+      "(가상) 심리학"
+    ],
+    "creativeArea": "동아리",
+    "target": "동아리 희망자",
+    "budgetId": null,
+    "venueIds": [],
+    "ownerHistory": []
+  }
+}

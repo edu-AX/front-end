@@ -1,0 +1,103 @@
+[
+  {
+    "id": "E-08",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "대학 연계 메이커·코딩 캠프",
+    "scope": "교외",
+    "eventDate": "2027-07-15",
+    "grade": 2,
+    "participants": 60,
+    "template": "OUT_DAY",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": [],
+    "officeRules": {
+      "office": "인천",
+      "consentRate": "학년 전체 학부모 80% 이상",
+      "safetyStaff": "학생 50명당 1명(100명 이상)",
+      "sourceId": "G-INC-01"
+    }
+  },
+  {
+    "id": "E-09",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "과학관·연구소 탐방",
+    "scope": "교외",
+    "eventDate": "2027-10-21",
+    "grade": 2,
+    "participants": 60,
+    "template": "OUT_DAY",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": [],
+    "officeRules": {
+      "office": "인천",
+      "consentRate": "학년 전체 학부모 80% 이상",
+      "safetyStaff": "학생 50명당 1명(100명 이상)",
+      "sourceId": "G-INC-01"
+    }
+  },
+  {
+    "id": "E-10",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "보건·의료 직업인 특강",
+    "scope": "교내",
+    "eventDate": "2027-05-19",
+    "grade": 2,
+    "participants": 90,
+    "template": "IN_SCHOOL",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": []
+  },
+  {
+    "id": "E-11",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "인문학 독서 토론 축제",
+    "scope": "교내",
+    "eventDate": "2027-09-15",
+    "participants": 200,
+    "template": "IN_SCHOOL",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": []
+  },
+  {
+    "id": "E-12",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "모의 법정·모의 국회",
+    "scope": "교내",
+    "eventDate": "2027-11-10",
+    "grade": 2,
+    "participants": 120,
+    "template": "IN_SCHOOL",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": []
+  },
+  {
+    "id": "E-13",
+    "department": "창의적체험활동부",
+    "schoolLevel": "high",
+    "title": "초등학교 교육 봉사",
+    "scope": "교외",
+    "eventDate": "2027-06-16",
+    "grade": 2,
+    "participants": 30,
+    "template": "OUT_DAY",
+    "handoverNotes": [],
+    "stepStatus": {},
+    "changeAlertIds": [],
+    "officeRules": {
+      "office": "인천",
+      "consentRate": "학년 전체 학부모 80% 이상",
+      "safetyStaff": "학생 50명당 1명(100명 이상)",
+      "sourceId": "G-INC-01"
+    }
+  }
+]
