@@ -50,7 +50,9 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
   const save = () => {
     if (!draft || !nextDate) return;
     const id = `U-${Date.now()}`;
-    addEvent(draftToEventCard(draft, { id, nextEventDate: nextDate, year: Number(todayFn().slice(0, 4)) }));
+    // 업로드한 보고서는 내년 카드의 "작년 기록"이 되므로, 연도는 보고서의 행사 연도
+    const reportYear = draft.eventDate ? Number(draft.eventDate.slice(0, 4)) : Number(todayFn().slice(0, 4)) - 1;
+    addEvent(draftToEventCard(draft, { id, nextEventDate: nextDate, year: reportYear, author: `${reportYear} 담당 교사` }));
     onSaved(id);
   };
 

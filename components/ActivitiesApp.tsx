@@ -9,7 +9,9 @@ import { matchTrack, tracks } from "@/lib/ext";
 import type { LocalSource } from "@/lib/extAnswer";
 import Logo from "./Logo";
 import Calendar from "./Calendar";
-import Widgets, { CareerDistribution, ProgressList } from "./Widgets";
+import Widgets, { CareerDistribution, LastYearThisTime, ProgressList } from "./Widgets";
+import HandoverIntro from "./HandoverIntro";
+import { lastYearThisTime } from "@/lib/handover";
 import EventLists from "./EventLists";
 import EventDrawer, { type TabKey } from "./EventDrawer";
 import Character, { type CharMode } from "./Character";
@@ -25,11 +27,17 @@ export default function ActivitiesApp() {
   const [mode, setMode] = useState<CharMode>("idle");
   const [track, setTrack] = useState("전체");
   const [upload, setUpload] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   const evs = useMemo(() => events.filter((e) => matchTrack(e.id, track)), [events, track]);
   const dash = useMemo(() => buildDashboard(today, state, events), [today, state, events]);
   const first = dash.upcoming[0];
-  const greeting = first ? `${first.title} ${formatDDay(first.dDay)}예요!` : null;
+  // 아리 첫 인사: 작년 이맘때 문제가 있었던 단계가 있으면 그 얘기부터 (인수인계 말투)
+  const lyIssue = useMemo(() => lastYearThisTime(today, events).find((x) => x.daysFromToday >= 0 && x.hadIssue), [today, events]);
+  const greeting = lyIssue?.memo
+    ? `작년 이맘때 ${lyIssue.eventTitle}에서 이런 일이 있었대요: ${lyIssue.memo}`
+    : first ? `${first.title} ${formatDDay(first.dDay)}예요!` : null;
+  const needIntro = ready && (!state.handoverAcceptedAt || showIntro);
   const openEvent = (id: string) => setOpen({ id });
 
   const openSource = (s: LocalSource) => { if (s.openEventId) setOpen({ id: s.openEventId, tab: s.tab }); };
@@ -45,6 +53,7 @@ export default function ActivitiesApp() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => setShowIntro(true)} className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-bold text-stone-800 shadow-sm hover:bg-amber-300">📖 인수인계 다시 보기</button>
           <button onClick={() => setUpload(true)} className="rounded-full bg-stone-800 px-4 py-1.5 text-sm font-bold text-white shadow-sm hover:bg-stone-700">📂 작년 행사 자료 올리기</button>
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">기준일 {today} · 가상 학교 데이터</span>
         </div>
@@ -64,6 +73,7 @@ export default function ActivitiesApp() {
           <EventLists onOpen={openEvent} evs={evs} />
         </div>
         <div className="space-y-4">
+          <LastYearThisTime onOpen={openEvent} evs={evs} />
           <ProgressList onOpen={openEvent} evs={evs} />
           <Widgets onOpen={openEvent} evs={evs} />
           <CareerDistribution track={track} onTrack={setTrack} />
@@ -73,7 +83,9 @@ export default function ActivitiesApp() {
       {open && <EventDrawer key={`${open.id}-${open.tab ?? ""}`} id={open.id} tab={open.tab} onClose={() => setOpen(null)} />}
       {upload && <UploadModal onClose={() => setUpload(false)} onSaved={(id) => { setUpload(false); setOpen({ id }); }} />}
 
-      {ready && !ext.hidden && (
+      {needIntro && <HandoverIntro onDone={() => setShowIntro(false)} onOpen={openEvent} />}
+
+      {ready && !ext.hidden && !needIntro && (
         <Character mode={mode} alert={dash.unconfirmedAlertCount > 0 && !chatOpen} greeting={greeting} pos={ext.charPos}
           onPos={(p) => updateExt({ charPos: p })} onChat={() => setChatOpen(true)} onHide={() => updateExt({ hidden: true })} />
       )}

@@ -6,7 +6,7 @@ import { useApp } from "@/lib/state";
 export type Msg = { role: "user" | "bot"; text: string; sources?: LocalSource[]; mode?: string };
 
 // 데모 고정 답이 있는 4개: 인터넷이 끊겨도 안전
-const samples = ["동의율은 몇 % 넘어야 해?", "안전요원 몇 명 있어야 해?", "사고 나면 교사 책임은?", "진로활동 특기사항 몇 자까지야?"];
+const samples = ["작년엔 수학여행 어떻게 했어?", "동의율은 몇 % 넘어야 해?", "안전요원 몇 명 있어야 해?", "사고 나면 교사 책임은?", "진로활동 특기사항 몇 자까지야?"];
 const FIRST_DISCLAIMER = "AI가 만든 답변이며 최종 판단은 담당자가 합니다.";
 
 export default function ChatPanel({ open, onClose, hidden, onSummon, onSource, setThinking, openChat, focusEventId }: {

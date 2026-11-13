@@ -16,8 +16,10 @@ type Ctx = {
   events: EventCard[];
   setStep: (eventId: string, stepId: StepId, st: StepState) => void;
   setEventDate: (eventId: string, date: DateString) => void;
-  addNote: (eventId: string, note: string) => void;
+  addNote: (eventId: string, note: string, stepId?: StepId) => void;
   toggleConfirm: (changeId: string) => void;
+  /** 백엔드 상태 도우미(acknowledgeNote, acceptHandover 등)를 그대로 쓰기 위한 범용 업데이트 */
+  update: (fn: (s: ClientState) => ClientState) => void;
   addEvent: (card: EventCard) => void;
   updateExt: (p: Partial<ExtState> | ((s: ExtState) => Partial<ExtState>)) => void;
 };
@@ -41,16 +43,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((p) => ({ ...p, stepStatus: { ...p.stepStatus, [eventId]: { ...p.stepStatus[eventId], [stepId]: st } } })), []);
   const setEventDate = useCallback<Ctx["setEventDate"]>((eventId, date) =>
     setState((p) => ({ ...p, eventDateOverrides: { ...p.eventDateOverrides, [eventId]: date } })), []);
-  const addNote = useCallback<Ctx["addNote"]>((eventId, note) =>
-    setState((p) => ({ ...p, extraNotes: { ...p.extraNotes, [eventId]: [...(p.extraNotes[eventId] ?? []), { year: new Date(today() + "T00:00:00Z").getUTCFullYear(), note, author: "나" }] } })), []);
+  const addNote = useCallback<Ctx["addNote"]>((eventId, note, stepId) =>
+    setState((p) => ({ ...p, extraNotes: { ...p.extraNotes, [eventId]: [...(p.extraNotes[eventId] ?? []), { year: Number(today().slice(0, 4)), note, author: "나", ...(stepId ? { stepId } : {}) }] } })), []);
+  const update = useCallback<Ctx["update"]>((fn) => setState(fn), []);
   const toggleConfirm = useCallback<Ctx["toggleConfirm"]>((id) =>
     setState((p) => ({ ...p, confirmedChangeIds: p.confirmedChangeIds.includes(id) ? p.confirmedChangeIds.filter((x) => x !== id) : [...p.confirmedChangeIds, id] })), []);
   const addEvent = useCallback<Ctx["addEvent"]>((card) => setState((p) => ({ ...p, addedEvents: [...p.addedEvents, card] })), []);
   const updateExt = useCallback<Ctx["updateExt"]>((p) => setExt((prev) => ({ ...prev, ...(typeof p === "function" ? p(prev) : p) })), []);
 
   const events = useMemo(() => allEvents(state), [state]);
-  const value = useMemo(() => ({ state, ext, ready, today: today(), events, setStep, setEventDate, addNote, toggleConfirm, addEvent, updateExt }),
-    [state, ext, ready, events, setStep, setEventDate, addNote, toggleConfirm, addEvent, updateExt]);
+  const value = useMemo(() => ({ state, ext, ready, today: today(), events, setStep, setEventDate, addNote, toggleConfirm, update, addEvent, updateExt }),
+    [state, ext, ready, events, setStep, setEventDate, addNote, toggleConfirm, update, addEvent, updateExt]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {
