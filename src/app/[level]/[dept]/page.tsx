@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { notFound } from "next/navigation";
 import { departments, isLevel, levels } from "@/lib/school";
 
@@ -8,6 +9,7 @@ export default async function DeptPage({ params }: { params: Promise<{ level: st
   if (!isLevel(level) || !d) notFound();
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 text-center">
+      <div className="mb-6"><Logo width={150} /></div>
       <nav className="mb-6 text-xs text-stone-500">{levels[level].school} › {levels[level].name} › {d.name}</nav>
       <div className="mb-3 text-6xl">{d.icon}</div>
       <h1 className="mb-2 text-2xl font-bold">{d.name}</h1>

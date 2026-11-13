@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useApp } from "@/lib/state";
 import { DEMO_TODAY, events, guidelines, changes, budgets, venues, activeChanges, parse, matchTrack, tracks } from "@/lib/data";
+import Logo from "./Logo";
 import Calendar from "./Calendar";
 import Widgets, { CareerDistribution } from "./Widgets";
 import EventLists from "./EventLists";
@@ -37,9 +38,12 @@ export default function ActivitiesApp() {
   return (
     <div className="mx-auto min-h-screen max-w-7xl px-4 pb-32 pt-6">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div>
+        <div className="flex items-center gap-4">
+          <Logo width={120} />
+          <div>
           <nav className="text-xs text-stone-500"><Link href="/" className="hover:underline">한빛고등학교</Link> › <Link href="/high" className="hover:underline">부서 선택</Link> › 창의적 체험활동부</nav>
           <h1 className="text-2xl font-bold">창의적 체험활동부 대시보드</h1>
+          </div>
         </div>
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">데모 기준일 {DEMO_TODAY} · 가상 학교 데이터</span>
       </header>

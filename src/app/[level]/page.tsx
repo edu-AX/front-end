@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { notFound } from "next/navigation";
 import { departments, hasContent, isLevel, levels } from "@/lib/school";
 
@@ -8,7 +9,10 @@ export default async function LevelPage({ params }: { params: Promise<{ level: s
   const info = levels[level];
   return (
     <main className="mx-auto min-h-screen max-w-3xl px-6 py-16">
-      <Link href="/" className="text-sm text-stone-500 hover:underline">← 학교급 선택</Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm text-stone-500 hover:underline">← 학교급 선택</Link>
+        <Logo width={110} />
+      </div>
       <h1 className="mb-1 mt-4 text-2xl font-bold">부서를 선택하세요</h1>
       <p className="mb-8 text-stone-600">{info.school}</p>
       <div className="grid gap-4 sm:grid-cols-2">
