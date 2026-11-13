@@ -29,6 +29,10 @@ type Ctx = {
 };
 const C = createContext<Ctx | null>(null);
 
+function clearStored() {
+  try { localStorage.removeItem(KEY); localStorage.removeItem(EXT_KEY); } catch {}
+}
+
 function load<T>(key: string, empty: T): T {
   try { const r = localStorage.getItem(key); if (r) return { ...empty, ...JSON.parse(r) }; } catch {}
   return empty;
@@ -39,7 +43,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ext, setExt] = useState<ExtState>(EMPTY_EXT_STATE);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => { setState(load(KEY, EMPTY_CLIENT_STATE)); setExt(load(EXT_KEY, EMPTY_EXT_STATE)); setReady(true); }, []);
+  useEffect(() => {
+    // 시연 리허설: /high/activities?reset=1 → 저장된 상태를 지우고 처음(인수인계 받기가 뜨는 상태)으로, 쿼리는 지움
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("reset") === "1") {
+      clearStored();
+      url.searchParams.delete("reset");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
+    setState(load(KEY, EMPTY_CLIENT_STATE)); setExt(load(EXT_KEY, EMPTY_EXT_STATE)); setReady(true);
+  }, []);
   useEffect(() => { if (ready) try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} }, [state, ready]);
   useEffect(() => { if (ready) try { localStorage.setItem(EXT_KEY, JSON.stringify(ext)); } catch {} }, [ext, ready]);
 
@@ -57,7 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const acceptHandover = useCallback<Ctx["acceptHandover"]>(() =>
     setState((p) => ({ ...p, handoverAcceptedAt: today() })), []);
   const resetDemo = useCallback<Ctx["resetDemo"]>(() => {
-    try { localStorage.removeItem(KEY); localStorage.removeItem(EXT_KEY); } catch {}
+    clearStored();
     setState(EMPTY_CLIENT_STATE);
     setExt(EMPTY_EXT_STATE);
   }, []);
