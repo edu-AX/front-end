@@ -1,0 +1,4 @@
+[
+  { "id": "C-01", "eventId": "E-04", "title": "창체 학생부 글자 수 축소", "before": "진로활동 특기사항 700자 / 행동특성 및 종합의견 500자", "after": "진로활동 특기사항 500자 / 행동특성 및 종합의견 300자(전 학년)", "status": "시행", "source": "학생부 종합지원포털 Q&A", "sourceId": "G-NAT-01", "url": "https://star.moe.go.kr/web/contents/m30103.do?id=115429&schM=view" },
+  { "id": "C-02", "eventId": "E-03", "title": "현장체험학습 교사 면책 기준", "before": "안전조치 의무를 다한 경우", "after": "고의·중과실이 없으면", "status": "추진 중", "source": "한국교육신문(통과 여부 미확인)", "sourceId": "G-NAT-03", "url": "https://hangyo.com/news/article.html?no=108733" }
+]

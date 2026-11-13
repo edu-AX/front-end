@@ -1,0 +1,30 @@
+{
+  "OUT_OVERNIGHT": { "label": "교외 숙박형", "steps": [
+    { "id": "plan", "label": "계획 수립·학교교육계획 반영", "offset": -120 },
+    { "id": "consent", "label": "학생·학부모 의견 수렴 / 동의서", "offset": -90 },
+    { "id": "vendor", "label": "업체 선정·계약, 사전답사", "offset": -60 },
+    { "id": "staff", "label": "안전요원·보조인력 배치 확정", "offset": -30 },
+    { "id": "safety", "label": "학생·교사 사전 안전교육", "offset": -7 },
+    { "id": "run", "label": "실시·임장지도", "offset": 0 },
+    { "id": "report", "label": "결과 보고·정산", "offset": 14 },
+    { "id": "record", "label": "학생부 입력 안내(담임)", "offset": 21 }
+  ] },
+  "OUT_DAY": { "label": "교외 1일형", "steps": [
+    { "id": "plan", "label": "계획 수립·학교교육계획 반영", "offset": -60 },
+    { "id": "consent", "label": "학생·학부모 의견 수렴 / 동의서", "offset": -45 },
+    { "id": "vendor", "label": "업체 선정·계약, 사전답사", "offset": -30 },
+    { "id": "staff", "label": "안전요원·보조인력 배치 확정", "offset": -14 },
+    { "id": "safety", "label": "학생·교사 사전 안전교육", "offset": -3 },
+    { "id": "run", "label": "실시·임장지도", "offset": 0 },
+    { "id": "report", "label": "결과 보고·정산", "offset": 7 },
+    { "id": "record", "label": "학생부 입력 안내(담임)", "offset": 14 }
+  ] },
+  "IN": { "label": "교내 행사", "steps": [
+    { "id": "plan", "label": "계획 수립·학교교육계획 반영", "offset": -45 },
+    { "id": "staff", "label": "당일 안전 담당 배치", "offset": -14 },
+    { "id": "safety", "label": "학생·교사 사전 안전교육", "offset": -3 },
+    { "id": "run", "label": "실시·임장지도", "offset": 0 },
+    { "id": "report", "label": "결과 보고·정산", "offset": 7 },
+    { "id": "record", "label": "학생부 입력 안내(담임)", "offset": 14 }
+  ] }
+}
