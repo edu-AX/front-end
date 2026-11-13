@@ -11,6 +11,7 @@ import Logo from "./Logo";
 import Calendar from "./Calendar";
 import Widgets, { CareerDistribution, LastYearThisTime, ProgressList } from "./Widgets";
 import HandoverIntro from "./HandoverIntro";
+import UpdateCheckModal from "./UpdateCheckModal";
 import { lastYearThisTime } from "@/lib/handover";
 import EventLists from "./EventLists";
 import EventDrawer, { type TabKey } from "./EventDrawer";
@@ -19,7 +20,7 @@ import ChatPanel from "./ChatPanel";
 import UploadModal from "./UploadModal";
 
 export default function ActivitiesApp() {
-  const { state, ext, ready, today, events, updateExt } = useApp();
+  const { state, ext, ready, today, events, changes, updateExt } = useApp();
   const t = parse(today);
   const [ym, setYm] = useState({ y: t.getUTCFullYear(), m: t.getUTCMonth() + 1 });
   const [open, setOpen] = useState<{ id: string; tab?: TabKey } | null>(null);
@@ -28,9 +29,18 @@ export default function ActivitiesApp() {
   const [track, setTrack] = useState("전체");
   const [upload, setUpload] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
+  const [updates, setUpdates] = useState(false);
+  // 기준 변경을 추가하고 창을 닫으면 아리가 한 번 알려준다
+  const [addedInCheck, setAddedInCheck] = useState(false);
+  const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
+  const closeUpdates = () => {
+    setUpdates(false);
+    if (addedInCheck) setNotice({ id: Date.now(), text: "새 기준 변경이 있어요! 캘린더의 ⚠를 확인해 보세요." });
+    setAddedInCheck(false);
+  };
 
   const evs = useMemo(() => events.filter((e) => matchTrack(e.id, track)), [events, track]);
-  const dash = useMemo(() => buildDashboard(today, state, events), [today, state, events]);
+  const dash = useMemo(() => buildDashboard(today, state, events, changes), [today, state, events, changes]);
   const first = dash.upcoming[0];
   // 아리 첫 인사: 작년 이맘때 문제가 있었던 단계가 있으면 그 얘기부터 (인수인계 말투)
   const lyIssue = useMemo(() => lastYearThisTime(today, events).find((x) => x.daysFromToday >= 0 && x.hadIssue), [today, events]);
@@ -56,6 +66,7 @@ export default function ActivitiesApp() {
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={() => setUpload(true)} className="rounded-full bg-stone-800 px-4 py-1.5 text-sm font-bold text-white shadow-sm hover:bg-stone-700">📂 작년 행사 자료 올리기</button>
           <button onClick={() => setShowIntro(true)} className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-bold text-stone-800 shadow-sm hover:bg-amber-300">📋 인수인계 다시 보기</button>
+          <button onClick={() => setUpdates(true)} className="rounded-full bg-sky-500 px-4 py-1.5 text-sm font-bold text-white shadow-sm hover:bg-sky-400">🔄 기준 업데이트 확인</button>
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">기준일 {today} · 가상 학교 데이터</span>
         </div>
       </header>
@@ -85,9 +96,10 @@ export default function ActivitiesApp() {
       {upload && <UploadModal onClose={() => setUpload(false)} onSaved={(id) => { setUpload(false); setOpen({ id }); }} />}
 
       {needIntro && <HandoverIntro onDone={() => setShowIntro(false)} onOpen={openEvent} />}
+      {updates && <UpdateCheckModal onClose={closeUpdates} onAdded={() => setAddedInCheck(true)} onOpenEvent={openEvent} />}
 
       {ready && !ext.hidden && !needIntro && (
-        <Character mode={mode} alert={dash.unconfirmedAlertCount > 0 && !chatOpen} greeting={greeting} pos={ext.charPos}
+        <Character mode={mode} alert={dash.unconfirmedAlertCount > 0 && !chatOpen} greeting={greeting} notice={notice} pos={ext.charPos}
           onPos={(p) => updateExt({ charPos: p })} onChat={() => setChatOpen(true)} onHide={() => updateExt({ hidden: true })} />
       )}
       <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} hidden={ready && ext.hidden} openChat={() => setChatOpen(true)} focusEventId={open?.id}

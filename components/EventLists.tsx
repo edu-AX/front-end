@@ -6,7 +6,7 @@ import { useApp } from "@/lib/state";
 import type { EventCard } from "@/lib/types";
 
 function Column({ scope, onOpen, evs }: { scope: "교내" | "교외"; onOpen: (id: string) => void; evs: EventCard[] }) {
-  const { state, today } = useApp();
+  const { state, today, changes } = useApp();
   const inside = scope === "교내";
   const list = evs.filter((e) => e.scope === scope).sort((a, b) => effectiveEventDate(a, state).localeCompare(effectiveEventDate(b, state)));
   return (
@@ -19,7 +19,7 @@ function Column({ scope, onOpen, evs }: { scope: "교내" | "교외"; onOpen: (i
         {list.map((e) => {
           const date = effectiveEventDate(e, state);
           const d = diffDays(today, date);
-          const schedule = computeSchedule(e, today, state);
+          const schedule = computeSchedule(e, today, state, undefined, changes);
           const ns = nextStep(schedule);
           const p = Math.round((schedule.filter((s) => s.state === "done").length / schedule.length) * 100);
           return (

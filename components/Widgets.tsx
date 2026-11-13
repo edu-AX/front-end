@@ -71,8 +71,8 @@ export function LastYearThisTime({ onOpen, evs }: { onOpen: (id: string) => void
 }
 
 export function ProgressList({ onOpen, evs }: { onOpen: (id: string) => void; evs: EventCard[] }) {
-  const { state, today } = useApp();
-  const d = buildDashboard(today, state, evs);
+  const { state, today, changes } = useApp();
+  const d = buildDashboard(today, state, evs, changes);
   return (
     <Card title="행사별 진행률">
       <ul className="space-y-2.5">
@@ -93,8 +93,8 @@ export function ProgressList({ onOpen, evs }: { onOpen: (id: string) => void; ev
 }
 
 export default function Widgets({ onOpen, evs }: { onOpen: (id: string) => void; evs: EventCard[] }) {
-  const { state, ext, today, events } = useApp();
-  const d = buildDashboard(today, state, evs);
+  const { state, ext, today, events, changes } = useApp();
+  const d = buildDashboard(today, state, evs, changes);
 
   const planned = budgets.reduce((n, b) => n + b.sources.reduce((a, x) => a + x.planned, 0), 0);
   const spent = budgets.reduce((n, b) => n + b.sources.reduce((a, x) => a + x.spent, 0), 0);

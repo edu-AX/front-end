@@ -8,9 +8,9 @@ import { useApp } from "@/lib/state";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 
 export default function HandoverIntro({ onDone, onOpen }: { onDone: () => void; onOpen: (id: string) => void }) {
-  const { state, today, events, acknowledgeNote, acceptHandover, toggleConfirm } = useApp();
+  const { state, today, events, changes, acknowledgeNote, acceptHandover, toggleConfirm } = useApp();
   useLockBodyScroll();
-  const b = buildHandoverBrief(today, state, events);
+  const b = buildHandoverBrief(today, state, events, changes);
   const from = b.from.length ? b.from.join(", ") : `${b.fromYear ?? "작년"} 담당 교사`;
   const pct = b.progress.total ? Math.round((b.progress.acknowledged / b.progress.total) * 100) : 100;
 

@@ -13,7 +13,7 @@ type Chip = { eventId: string; kind: "event" | "deadline"; label: string; full?:
 export default function Calendar({ year, month, onMonth, onOpen, evs }: {
   year: number; month: number; onMonth: (y: number, m: number) => void; onOpen: (id: string) => void; evs: EventCard[];
 }) {
-  const { state, ext, today } = useApp();
+  const { state, ext, today, changes } = useApp();
 
   const cells = useMemo(() => {
     const first = new Date(Date.UTC(year, month - 1, 1));
@@ -28,13 +28,13 @@ export default function Calendar({ year, month, onMonth, onOpen, evs }: {
     const map: Record<string, Chip[]> = {};
     const ym = `${year}-${pad(month)}`;
     const push = (date: string, c: Chip) => (map[date] ||= []).push(c);
-    buildCalendar(ym, today, state, evs).forEach((i: CalendarItem) =>
+    buildCalendar(ym, today, state, evs, changes).forEach((i: CalendarItem) =>
       push(i.date, { eventId: i.eventId, kind: i.kind, full: i.label, label: i.kind === "deadline" ? i.label.split(" · ").slice(1).join(" · ") : i.label, color: i.color, hasAlert: i.hasAlert, done: !!i.done }));
     // 정산 마감·학부모 공개(확장 단계)
     for (const e of evs) for (const st of settlementSteps(e, state, ext))
       if (st.dueDate.startsWith(`${ym}-`)) push(st.dueDate, { eventId: e.id, kind: "deadline", label: `💰 ${st.label}`, color: e.scope === "교내" ? "green" : "blue", hasAlert: false, done: st.done });
     return map;
-  }, [year, month, today, state, ext, evs]);
+  }, [year, month, today, state, ext, evs, changes]);
 
   const move = (n: number) => {
     const d = new Date(Date.UTC(year, month - 1 + n, 1));

@@ -5,7 +5,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 import { today } from "./dates";
 import { allEvents, EMPTY_EXT_STATE, type ExtState } from "./ext";
 import { handoverStorage, LOCAL_STATE_KEY, STORAGE_SCOPE } from "./storage";
-import { EMPTY_CLIENT_STATE, type ClientState, type DateString, type EventCard, type StepId, type StepState } from "./types";
+import { changesWithAdded } from "./data";
+import { EMPTY_CLIENT_STATE, type ChangeAlert, type ClientState, type DateString, type EventCard, type StepId, type StepState } from "./types";
 
 /** 화면 전용 상태(캐릭터 위치 등). 인수인계 기록이 아니라서 브라우저에만 둔다 */
 const EXT_KEY = "handover:ext:v1";
@@ -16,6 +17,10 @@ type Ctx = {
   ready: boolean;
   today: DateString;
   events: EventCard[];
+  /** 기본 변경 알림 + "기준 업데이트 확인"에서 추가한 변경 (changesWithAdded). 화면 계산에는 이걸 넘긴다 */
+  changes: ChangeAlert[];
+  /** 기준 업데이트 확인: 담당자가 후보를 "변경 알림에 추가" */
+  addChange: (change: ChangeAlert) => void;
   setStep: (eventId: string, stepId: StepId, st: StepState) => void;
   setEventDate: (eventId: string, date: DateString) => void;
   addNote: (eventId: string, note: string, stepId?: StepId) => void;
@@ -79,6 +84,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }), []);
   const acceptHandover = useCallback<Ctx["acceptHandover"]>(() =>
     setState((p) => ({ ...p, handoverAcceptedAt: today() })), []);
+  const addChange = useCallback<Ctx["addChange"]>((change) =>
+    setState((p) => {
+      const cur = p.addedChanges ?? [];
+      return cur.some((c) => c.id === change.id) ? p : { ...p, addedChanges: [...cur, change] };
+    }), []);
   const resetDemo = useCallback<Ctx["resetDemo"]>(() => {
     clearStored();
     setState(EMPTY_CLIENT_STATE);
@@ -90,8 +100,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateExt = useCallback<Ctx["updateExt"]>((p) => setExt((prev) => ({ ...prev, ...(typeof p === "function" ? p(prev) : p) })), []);
 
   const events = useMemo(() => allEvents(state), [state]);
-  const value = useMemo(() => ({ state, ext, ready, today: today(), events, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt }),
-    [state, ext, ready, events, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt]);
+  const changes = useMemo(() => changesWithAdded(state), [state]);
+  const value = useMemo(() => ({ state, ext, ready, today: today(), events, changes, addChange, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt }),
+    [state, ext, ready, events, changes, addChange, setStep, setEventDate, addNote, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

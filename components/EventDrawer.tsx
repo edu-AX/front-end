@@ -8,7 +8,7 @@ import { handoverCoverage } from "@/lib/handover";
 import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate, eventLevelNotes, isChangeConfirmed } from "@/lib/schedule";
 import { useApp } from "@/lib/state";
-import type { HandoverNote, ScheduledStep, StepId } from "@/lib/types";
+import type { ChangeAlert, HandoverNote, ScheduledStep, StepId } from "@/lib/types";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
 
@@ -21,7 +21,7 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 export default function EventDrawer({ id, tab: initialTab, onClose }: { id: string; tab?: TabKey; onClose: () => void }) {
-  const { state, ext, today, events, setStep, setEventDate, addNote, toggleConfirm, updateExt } = useApp();
+  const { state, ext, today, events, changes, setStep, setEventDate, addNote, toggleConfirm, updateExt } = useApp();
   const [tab, setTab] = useState<TabKey>(initialTab ?? "check");
   const [memo, setMemo] = useState("");
   const [memoStep, setMemoStep] = useState<StepId | "">("");
@@ -30,7 +30,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   if (!ev) return null;
 
   const date = effectiveEventDate(ev, state);
-  const schedule = computeSchedule(ev, today, state);
+  const schedule = computeSchedule(ev, today, state, undefined, changes);
   const extra = settlementSteps(ev, state, ext);
   type Row = {
     key: string; label: string; dueDate: string; done: boolean; alert: boolean; money: boolean;
@@ -41,7 +41,34 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
     ...extra.map((s): Row => ({ key: s.id as string, label: s.label, dueDate: s.dueDate, done: s.done, alert: false, money: true, notes: [], toggle: (v: boolean) => updateExt((p) => ({ extraDone: { ...p.extraDone, [s.key]: v } })) })),
   ].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
-  const alerts = ev.changeAlertIds.map((cid) => getChange(cid)).filter((c): c is NonNullable<typeof c> => !!c && c.eventIds.includes(ev.id));
+  // 이 행사에 걸린 변경 알림 (기본 + 기준 업데이트 확인에서 추가한 것). 단계가 정해진 건 그 단계 아래에 붙인다
+  const alerts = changes.filter((c) => c.eventIds.includes(ev.id));
+  const stepIds = new Set<string>(schedule.map((s) => s.id));
+  const eventAlerts = alerts.filter((c) => !c.stepId || !stepIds.has(c.stepId));
+  const stepAlerts = (stepId?: StepId) => (stepId ? alerts.filter((c) => c.stepId === stepId) : []);
+  const changeBox = (c: ChangeAlert, compact = false) => {
+    const confirmed = isChangeConfirmed(c, state);
+    const pending = c.status === "추진 중";
+    const added = c.publishedAt !== undefined;
+    return (
+      <div key={c.id} className={`rounded-2xl border-2 ${compact ? "p-3 text-xs" : "mb-4 p-4 text-sm"} ${pending ? "border-orange-300 bg-orange-50" : "border-amber-300 bg-amber-50"}`}>
+        <div className="mb-2 flex flex-wrap items-center gap-2 font-bold">⚠️ {c.title}
+          <span className={`rounded-full px-2 py-0.5 text-[11px] text-white ${pending ? "bg-orange-500" : "bg-amber-500"}`}>{c.status}</span>
+          {added && <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] text-sky-800">기준 업데이트 확인에서 추가</span>}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-white p-2"><div className="text-[11px] text-stone-400">작년/현행</div>{c.before}</div>
+          <div className="rounded-xl bg-white p-2"><div className="text-[11px] text-stone-400">{pending ? "개정안" : "올해"}</div>{c.after}</div>
+        </div>
+        {pending && <p className="mt-2 font-semibold text-orange-700">현행 기준은 그대로 적용돼요. 개정은 추진 중이며 확정이 아니에요.</p>}
+        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-stone-500">
+          <span>{c.source}</span>
+          <button onClick={() => toggleConfirm(c.id)} disabled={c.confirmed}
+            className={`shrink-0 rounded-full px-3 py-1 font-bold ${confirmed ? "bg-stone-200 text-stone-600" : "bg-stone-800 text-white"}`}>{confirmed ? "확인함 ✓" : "확인함"}</button>
+        </div>
+      </div>
+    );
+  };
   // 단계에 붙은 메모는 체크리스트 줄 아래에서 보여주므로, 여기엔 행사 전체 메모만
   const notes = eventLevelNotes(ev, state);
   const ly = ev.lastYear;
@@ -109,27 +136,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
               <div className="mt-1 flex justify-between"><span className="text-stone-500">참가 인원</span><b>{ev.participants ?? "-"}명</b></div>
             </div>
 
-            {alerts.map((c) => {
-              const confirmed = isChangeConfirmed(c, state);
-              const pending = c.status === "추진 중";
-              return (
-                <div key={c.id} className={`mb-4 rounded-2xl border-2 p-4 text-sm ${pending ? "border-orange-300 bg-orange-50" : "border-amber-300 bg-amber-50"}`}>
-                  <div className="mb-2 flex items-center gap-2 font-bold">⚠️ {c.title}
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] text-white ${pending ? "bg-orange-500" : "bg-amber-500"}`}>{c.status}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-xl bg-white p-2"><div className="text-[11px] text-stone-400">작년/현행</div>{c.before}</div>
-                    <div className="rounded-xl bg-white p-2"><div className="text-[11px] text-stone-400">{pending ? "개정안" : "올해"}</div>{c.after}</div>
-                  </div>
-                  {pending && <p className="mt-2 font-semibold text-orange-700">현행 기준은 그대로 적용돼요. 개정은 추진 중이며 확정이 아니에요.</p>}
-                  <div className="mt-2 flex items-center justify-between text-xs text-stone-500">
-                    <span>{c.source}</span>
-                    <button onClick={() => toggleConfirm(c.id)} disabled={c.confirmed}
-                      className={`rounded-full px-3 py-1 font-bold ${confirmed ? "bg-stone-200 text-stone-600" : "bg-stone-800 text-white"}`}>{confirmed ? "확인함 ✓" : "확인함"}</button>
-                  </div>
-                </div>
-              );
-            })}
+            {eventAlerts.map((c) => changeBox(c))}
 
             {rules && (
               <div className="mb-4 rounded-2xl bg-sky-50 p-4 text-sm">
@@ -168,6 +175,9 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                           </div>
                         ))}
                       </div>
+                    )}
+                    {stepAlerts(r.stepId).length > 0 && (
+                      <div className="space-y-2 px-3 pb-3 pl-10">{stepAlerts(r.stepId).map((c) => changeBox(c, true))}</div>
                     )}
                   </li>
                 );

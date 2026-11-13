@@ -72,8 +72,11 @@ const REACTIONS: { text: string; fx: Fx; hearts?: boolean }[] = [
   { text: "잘하고 있어요. 정말로요 😊", fx: "squish", hearts: true },
 ];
 
-export default function Character({ mode, alert, greeting, pos, onPos, onChat, onHide }: {
-  mode: CharMode; alert: boolean; greeting?: string | null; pos: { x: number; y: number } | null;
+export default function Character({ mode, alert, greeting, notice, pos, onPos, onChat, onHide }: {
+  mode: CharMode; alert: boolean; greeting?: string | null;
+  /** 한 번 띄울 알림 말풍선 (id 가 바뀔 때마다 한 번) */
+  notice?: { id: number; text: string } | null;
+  pos: { x: number; y: number } | null;
   onPos: (p: { x: number; y: number }) => void; onChat: () => void; onHide: () => void;
 }) {
   const x = useMotionValue(pos?.x ?? 40);
@@ -141,6 +144,14 @@ export default function Character({ mode, alert, greeting, pos, onPos, onChat, o
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [greeting]);
+
+  // 기준 업데이트 확인에서 변경을 추가하면 "새 기준 변경이 있어요" 를 한 번 말한다
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => { stopWalk(); play("jump", 500); say(notice.text, 4000); }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notice?.id]);
 
   const onSingleClick = () => {
     stopWalk();
