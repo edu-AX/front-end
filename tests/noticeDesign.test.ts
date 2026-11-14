@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_DESIGN, noticePrintDocument, noticeToHtml, parseNotice, type DesignProfile } from "@/lib/noticeDesign";
+import { A4_MM, DEFAULT_DESIGN, noticeFit, noticePrintDocument, noticeToHtml, parseNotice, scaleDesign, type DesignProfile } from "@/lib/noticeDesign";
 
 const TEXT = `【학교 표어】
 (【문서번호】호)
@@ -87,5 +87,35 @@ describe("디자인을 입힌 HTML", () => {
     const doc = noticePrintDocument(TEXT, design, "수학여행 <안내>");
     expect(doc).toContain("@page{size:210mm 297mm;margin:0}");
     expect(doc).toContain("<title>수학여행 &lt;안내&gt;</title>");
+  });
+});
+
+describe("A4 한 장에 맞추기", () => {
+  it("용지는 항상 A4(210×297mm)", () => {
+    expect(A4_MM).toEqual([210, 297]);
+    const html = noticeToHtml(TEXT, { ...DEFAULT_DESIGN, pageMm: [209.9, 296.7] });
+    expect(html).toContain("width:210mm");
+  });
+  it("줄이기: 글자·줄 간격·여백·표 글자를 비율로 줄이되 하한이 있다", () => {
+    const d = scaleDesign(DEFAULT_DESIGN, 0.6);
+    expect(d.sizes.body).toBeCloseTo(DEFAULT_DESIGN.sizes.body * 0.6, 1);
+    expect(d.sizes.title).toBeLessThan(DEFAULT_DESIGN.sizes.title);
+    expect(d.lineHeight).toBeGreaterThanOrEqual(1.2);
+    expect(d.lineHeight).toBeLessThan(DEFAULT_DESIGN.lineHeight);
+    expect(d.marginMm.top).toBeGreaterThanOrEqual(8);
+    expect(d.table.fontPt).toBeLessThan(DEFAULT_DESIGN.table.fontPt);
+    expect(scaleDesign(DEFAULT_DESIGN, 1)).toBe(DEFAULT_DESIGN);
+  });
+  it("브라우저가 아니면(높이를 못 재면) 줄이지 않고 한 장으로 돌려준다", () => {
+    const r = noticeFit(TEXT, DEFAULT_DESIGN);
+    expect(r).toMatchObject({ k: 1, fits: true });
+    expect(r.html.match(/data-notice-page/g)).toHaveLength(1);
+    expect(r.html).toContain("height:297mm");
+  });
+  it("머리말 그림도 줄인 비율을 따른다", () => {
+    const d: DesignProfile = { ...DEFAULT_DESIGN, header: { ...DEFAULT_DESIGN.header, emblem: true }, images: { emblem: "data:image/png;base64,BBBB" } };
+    const small = noticeToHtml(TEXT, d, { k: 0.5 });
+    expect(small).toContain("width:10mm");
+    expect(noticeToHtml(TEXT, d)).toContain("width:20mm");
   });
 });

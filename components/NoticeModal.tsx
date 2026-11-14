@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiUrl } from "@/lib/api";
 import { buildNotice, countBlanks, NOTICE_LABEL, noticeFacts, type NoticeKind } from "@/lib/notice";
-import { DEFAULT_DESIGN, noticePrintDocument, noticeToHtml } from "@/lib/noticeDesign";
+import { buildHwpx } from "@/lib/hwpx";
+import { A4_MM, DEFAULT_DESIGN, noticeFit, noticePrintDocument, noticeToHtml } from "@/lib/noticeDesign";
 import { maskPersonalInfo } from "@/lib/masking";
 import { computeSchedule, effectiveEventDate } from "@/lib/schedule";
 import { settlementSteps, type NoticeRef } from "@/lib/ext";
@@ -49,25 +50,24 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
 
   const sel = refs.find((r) => r.id === selId) ?? null;
   const design = sel?.design ?? DEFAULT_DESIGN;
-  const html = useMemo(() => noticeToHtml(text, design, { highlightBlanks: true }), [text, design]);
+  // 내용 전체를 A4 한 장에 맞춘 미리보기 (넘치면 글자·간격·여백을 줄인다)
+  const fit = useMemo(() => noticeFit(text, design, { highlightBlanks: true }), [text, design]);
 
   // 용지 미리보기를 상자 너비에 맞춰 줄인다
   const box = useRef<HTMLDivElement>(null);
-  const paper = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState({ scale: 1, height: 0 });
+  const [scale, setScale] = useState(1);
   useEffect(() => {
     if (view !== "paper") return;
     const calc = () => {
-      if (!box.current || !paper.current) return;
-      const pagePx = (design.pageMm[0] / 25.4) * 96;
-      const scale = Math.min(1, (box.current.clientWidth - 24) / pagePx);
-      setFit({ scale, height: paper.current.scrollHeight * scale });
+      if (!box.current) return;
+      const pagePx = (A4_MM[0] / 25.4) * 96;
+      setScale(Math.min(1, (box.current.clientWidth - 24) / pagePx));
     };
     calc();
     const ro = new ResizeObserver(calc);
     if (box.current) ro.observe(box.current);
     return () => ro.disconnect();
-  }, [view, html, design.pageMm]);
+  }, [view]);
 
   if (!ev || !ctx) return null;
 
@@ -120,10 +120,24 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
   /** 서식 포함 복사: 한글·워드에 붙여넣으면 표·굵기·글자 크기가 그대로 따라온다 */
   const copyRich = async () => {
     try {
-      const h = noticeToHtml(text, design);
+      const h = noticeToHtml(text, fit.design, { k: fit.k });
       await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([h], { type: "text/html" }), "text/plain": new Blob([text], { type: "text/plain" }) })]);
       setCopied(true); setTimeout(() => setCopied(false), 1800);
     } catch { await copyPlain(); }
+  };
+  /** 한글(.hwpx) 파일로 내보내기: 레퍼런스 디자인·A4 한 장 그대로 */
+  const exportHwpx = () => {
+    try {
+      const bytes = buildHwpx(text, fit.design, fit.k);
+      const name = `${ev.title} ${NOTICE_LABEL[kind]}`.replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim();
+      const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/hwp+zip" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = `${name}.hwpx`; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setNote("한글 파일(.hwpx)로 내려받았어요. 한글에서 열어 마지막으로 확인해 주세요.");
+    } catch (e) {
+      setErr(e instanceof Error ? `한글 파일을 만들지 못했어요: ${e.message}` : "한글 파일을 만들지 못했어요");
+    }
   };
   const print = () => {
     const w = window.open("", "_blank", "width=900,height=1000");
@@ -197,10 +211,14 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
         </div>
 
         {view === "paper" ? (
-          // 용지 전체를 잘림 없이 보여준다 (안쪽 스크롤 없이 창 자체가 스크롤됨). 상자 너비에 맞춰 줄이고 가운데 놓는다
+          // A4 한 장에 전부 넣어 보여준다. 상자 너비에 맞춰 줄이고 가운데 놓는다
           <div ref={box} className="rounded-2xl border border-stone-200 bg-stone-200 p-2 sm:p-3">
-            <div style={{ width: (design.pageMm[0] / 25.4) * 96 * fit.scale, height: fit.height || undefined, margin: "0 auto" }}>
-              <div ref={paper} style={{ transform: `scale(${fit.scale})`, transformOrigin: "top left", width: `${design.pageMm[0]}mm`, boxShadow: "0 1px 6px rgba(0,0,0,.25)" }} dangerouslySetInnerHTML={{ __html: html }} />
+            <p className={`mb-2 text-center text-[11px] font-bold ${fit.fits ? "text-stone-500" : "text-red-600"}`}>
+              A4 한 장 · {fit.k < 1 ? `한 장에 맞추려고 글자·간격을 ${Math.round(fit.k * 100)}%로 줄였어요` : "줄이지 않고 그대로 들어가요"}
+              {!fit.fits && " · 내용이 너무 많아 줄여도 한 장에 다 안 들어가요. 글을 줄여 주세요"}
+            </p>
+            <div style={{ width: (A4_MM[0] / 25.4) * 96 * scale, height: (A4_MM[1] / 25.4) * 96 * scale, margin: "0 auto" }}>
+              <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: `${A4_MM[0]}mm`, boxShadow: "0 1px 6px rgba(0,0,0,.25)" }} dangerouslySetInnerHTML={{ __html: fit.html }} />
             </div>
           </div>
         ) : (
@@ -217,6 +235,7 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <button onClick={() => { setText(initial); setNote(null); setErr(null); setSelId(null); }} className="rounded-full bg-white px-4 py-2 text-sm shadow-sm">기본 양식 초안으로 되돌리기</button>
           <div className="flex flex-wrap gap-2">
+            <button onClick={exportHwpx} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-violet-700">한글(.hwpx)로 내보내기</button>
             <button onClick={print} className="rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm">인쇄 / PDF</button>
             <button onClick={copyPlain} className="rounded-full bg-white px-4 py-2 text-sm font-bold shadow-sm">글만 복사</button>
             <button onClick={copyRich} className="rounded-full bg-amber-400 px-5 py-2 text-sm font-bold">{copied ? "복사했어요 ✓" : "서식 포함 복사"}</button>
