@@ -133,8 +133,8 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto overscroll-contain bg-stone-900/30 p-3 backdrop-blur-[2px] sm:items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="가정통신문 초안" className="w-full max-w-4xl rounded-3xl bg-cream p-5 shadow-xl sm:p-6">
+    <div className="fixed inset-0 z-[60] flex overflow-y-auto overscroll-contain bg-stone-900/30 p-3 backdrop-blur-[2px]" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="가정통신문 초안" className="m-auto w-full max-w-4xl rounded-3xl bg-cream p-5 shadow-xl sm:p-6">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold">가정통신문 초안</h2>

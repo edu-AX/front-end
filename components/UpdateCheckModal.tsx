@@ -73,8 +73,8 @@ export default function UpdateCheckModal({ onClose, onAdded, onOpenEvent }: {
   const candidates = (res?.found ?? []).filter((c) => !ignored.includes(c.id));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-stone-900/30 p-3 backdrop-blur-[2px] sm:items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-2xl rounded-3xl bg-cream p-5 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex overflow-y-auto overscroll-contain bg-stone-900/30 p-3 backdrop-blur-[2px]" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="m-auto w-full max-w-2xl rounded-3xl bg-cream p-5 shadow-2xl">
         <header className="mb-3 flex items-start justify-between gap-2">
           <div>
             <div className="text-xs font-bold text-sky-700">🔄 기준 업데이트 확인</div>
