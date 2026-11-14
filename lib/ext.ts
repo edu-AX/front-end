@@ -8,6 +8,7 @@ import careerJson from "@/data/careerTracks.json";
 import checklistJson from "@/data/safetyChecklists.json";
 import recordsJson from "@/data/handover-records.json";
 import { eventsWithAdded } from "./data";
+import type { DesignProfile } from "./noticeDesign";
 import { addDays } from "./dates";
 import { effectiveEventDate } from "./schedule";
 import type { ClientState, DateString, DraftCandidate, EventCard } from "./types";
@@ -69,7 +70,7 @@ export type ExtState = {
   /** 가정통신문 양식 레퍼런스 (개인정보를 가린 글자만 보관. 원본 파일은 저장하지 않는다) */
   noticeRefs: NoticeRef[];
 };
-export type NoticeRef = { id: string; name: string; text: string; summary: string[]; addedAt: string };
+export type NoticeRef = { id: string; name: string; text: string; summary: string[]; addedAt: string; design?: DesignProfile; designSummary?: string[] };
 export const EMPTY_EXT_STATE: ExtState = {
   extraDone: {}, charPos: null, hidden: false,
   addedExt: {}, addedBudgets: [], addedVenues: [], addedRecords: {},
