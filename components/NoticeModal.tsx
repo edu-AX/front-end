@@ -60,7 +60,7 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
     const calc = () => {
       if (!box.current || !paper.current) return;
       const pagePx = (design.pageMm[0] / 25.4) * 96;
-      const scale = Math.min(1, (box.current.clientWidth - 2) / pagePx);
+      const scale = Math.min(1, (box.current.clientWidth - 24) / pagePx);
       setFit({ scale, height: paper.current.scrollHeight * scale });
     };
     calc();
@@ -197,9 +197,10 @@ export default function NoticeModal({ eventId, kind, onClose }: { eventId: strin
         </div>
 
         {view === "paper" ? (
-          <div ref={box} className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-200 p-2" style={{ height: fit.height ? fit.height + 18 : undefined, maxHeight: "62vh", overflowY: "auto" }}>
-            <div style={{ height: fit.height || undefined }}>
-              <div ref={paper} style={{ transform: `scale(${fit.scale})`, transformOrigin: "top left", width: `${design.pageMm[0]}mm` }} dangerouslySetInnerHTML={{ __html: html }} />
+          // 용지 전체를 잘림 없이 보여준다 (안쪽 스크롤 없이 창 자체가 스크롤됨). 상자 너비에 맞춰 줄이고 가운데 놓는다
+          <div ref={box} className="rounded-2xl border border-stone-200 bg-stone-200 p-2 sm:p-3">
+            <div style={{ width: (design.pageMm[0] / 25.4) * 96 * fit.scale, height: fit.height || undefined, margin: "0 auto" }}>
+              <div ref={paper} style={{ transform: `scale(${fit.scale})`, transformOrigin: "top left", width: `${design.pageMm[0]}mm`, boxShadow: "0 1px 6px rgba(0,0,0,.25)" }} dangerouslySetInnerHTML={{ __html: html }} />
             </div>
           </div>
         ) : (
