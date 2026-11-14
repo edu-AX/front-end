@@ -78,12 +78,12 @@ export default function UploadModal({ onClose, onSaved }: { onClose: () => void;
           <div>
             <label className="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-amber-300 bg-white p-8 text-center">
               <span className="text-3xl">📄</span>
-              <span className="font-semibold">결과보고서(한글 hwpx · PDF · txt, 4MB 이하)</span>
+              <span className="font-semibold">결과보고서(한글 hwp·hwpx · PDF · txt, 4MB 이하)</span>
               <span className="text-xs text-stone-500">올리면 이름·전화번호 등을 먼저 가려서 보여드려요</span>
-              <input type="file" accept=".hwpx,.pdf,.txt,application/pdf,text/plain" disabled={busy} className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+              <input type="file" accept=".hwp,.hwpx,.pdf,.txt,application/pdf,text/plain" disabled={busy} className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
               <span className="rounded-full bg-amber-400 px-4 py-1.5 text-sm font-bold">{busy ? "처리 중…" : "파일 선택"}</span>
             </label>
-            <p className="mt-3 text-[11px] text-stone-400">원본 파일은 서버에 저장하지 않아요. 학생 명단 같은 파일은 올리지 마세요. 옛 형식 한글(.hwp)은 읽지 못하니 한글에서 hwpx 또는 PDF로 다시 저장해 주세요.</p>
+            <p className="mt-3 text-[11px] text-stone-400">원본 파일은 서버에 저장하지 않아요. 학생 명단 같은 파일은 올리지 마세요. 암호가 걸린 한글 파일과 스캔한 이미지 PDF는 읽지 못해요.</p>
           </div>
         )}
 

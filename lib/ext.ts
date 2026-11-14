@@ -66,11 +66,15 @@ export type ExtState = {
   addedRecords: Record<string, HandoverRecord>; // eventId → 고민 기록
   /** 담당자가 직접 고친 값 (예산·장소·담당 이력·참가 인원·교육청 기준) */
   edits: Edits;
+  /** 가정통신문 양식 레퍼런스 (개인정보를 가린 글자만 보관. 원본 파일은 저장하지 않는다) */
+  noticeRefs: NoticeRef[];
 };
+export type NoticeRef = { id: string; name: string; text: string; summary: string[]; addedAt: string };
 export const EMPTY_EXT_STATE: ExtState = {
   extraDone: {}, charPos: null, hidden: false,
   addedExt: {}, addedBudgets: [], addedVenues: [], addedRecords: {},
   edits: EMPTY_EDITS,
+  noticeRefs: [],
 };
 export type ExtOverlay = Pick<ExtState, "addedExt" | "addedBudgets" | "addedVenues" | "addedRecords"> & Partial<Pick<ExtState, "edits">>;
 

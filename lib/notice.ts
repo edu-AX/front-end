@@ -36,6 +36,31 @@ const due = (schedule: ScheduledStep[], id: string) => schedule.find((s) => s.id
 const target = (ev: EventCard) => (ev.grade ? `${ev.grade}학년` : "전교생");
 const school = levels.high.school;
 
+/** 서버(/api/notice/draft)로 보내는 행사 정보. 카드에 없는 값은 빈 문자열·null 로 둔다 (빈칸은 서버가 만든다) */
+export type NoticeFacts = {
+  schoolName: string; year: string; eventTitle: string; scope: "교내" | "교외"; eventDate: DateString; nights: string;
+  venueText: string; targetText: string; participants: number | null; costPerStudent: number | null; costItems: string[];
+  safetyStaff: string; safetyEduDate: DateString | null; consentDue: DateString | null; today: DateString; discloseDue: DateString | null;
+  settlement?: { income: string; items: { name: string; planned: string }[] };
+};
+
+export function noticeFacts(ev: EventCard, ctx: Ctx): NoticeFacts {
+  const venueNames = getExt(ev.id).venueIds.map((id) => findVenue(id)?.name).filter(Boolean) as string[];
+  const budget = eventBudget(ev.id);
+  const payer = budget?.sources.find((x) => x.perStudent);
+  const consent = due(ctx.schedule, "consent");
+  return {
+    schoolName: school, year: ctx.date.slice(0, 4), eventTitle: ev.title, scope: ev.scope, eventDate: ctx.date,
+    nights: ev.template === "OUT_OVERNIGHT" ? `${BLANK}박 ${BLANK}일` : ev.scope === "교외" ? "당일" : "",
+    venueText: venueNames.join(", "), targetText: target(ev), participants: ev.participants ?? null,
+    costPerStudent: payer?.perStudent ?? null, costItems: budget?.items.map((i) => i.name) ?? [],
+    safetyStaff: ev.officeRules?.safetyStaff ?? "", safetyEduDate: due(ctx.schedule, "safety_edu") ?? null,
+    // 이미 지난 기한은 보내지 않는다 → 서버가 빈칸으로 만든다
+    consentDue: consent && consent >= ctx.today ? consent : null, today: ctx.today, discloseDue: ctx.discloseDue ?? null,
+    ...(budget?.settlement && payer ? { settlement: { income: won(payer.planned), items: budget.items.map((i) => ({ name: i.name, planned: won(i.planned) })) } } : {}),
+  };
+}
+
 export function buildNotice(kind: NoticeKind, ev: EventCard, ctx: Ctx): string {
   const year = ctx.date.slice(0, 4);
   const venueNames = getExt(ev.id).venueIds.map((id) => findVenue(id)?.name).filter(Boolean) as string[];
