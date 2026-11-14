@@ -156,9 +156,15 @@ export function OwnerTab({ ev }: { ev: EventCard }) {
       {x.fromUpload && <FromUpload />}
       {list.map((o) => (
         <div key={o.year} className="rounded-2xl bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="font-bold">{o.year} · {o.role}</div>
-            <span className="text-xs text-stone-500">{o.consentToShow && o.name ? `${o.name} 선생님${o.contact ? ` · ${o.contact}` : ""}` : "담당(비공개)"}</span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="whitespace-nowrap font-bold">{o.year} · {o.role}</div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <span className="text-xs text-stone-500">{o.consentToShow && o.name ? `${o.name} 선생님${o.contact ? ` · ${o.contact}` : ""}` : "담당(비공개)"}</span>
+              {/* 화면만 있는 버튼 — 채팅 기능은 아직 연결하지 않음 */}
+              <button type="button" className="h-8 rounded-full border border-stone-200 bg-white px-3 text-xs font-bold text-stone-700 hover:bg-stone-50">
+                💬 담당 선생님과 채팅하기
+              </button>
+            </div>
           </div>
           <div className="mt-2 space-y-1.5 text-xs">
             <div className="rounded-lg bg-emerald-50 p-2"><b className="text-emerald-700">잘된 점</b> {o.notes.good}</div>
