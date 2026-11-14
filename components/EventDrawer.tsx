@@ -12,6 +12,8 @@ import { isCustomStepId, type AnyStepId, type ChangeAlert, type HandoverNote, ty
 import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
+import NoticeModal from "./NoticeModal";
+import { NOTICE_LABEL, noticeKindForStep, type NoticeKind } from "@/lib/notice";
 
 const PII_LABEL = { name: "이름", phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일" } as const;
 const PII_ORDER = ["name", "phone", "studentId", "rrn", "email"] as const;
@@ -26,6 +28,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const [tab, setTab] = useState<TabKey>(initialTab ?? "check");
   const [memo, setMemo] = useState("");
   const [memoStep, setMemoStep] = useState<AnyStepId | "">("");
+  const [notice, setNotice] = useState<NoticeKind | null>(null);
   // 체크리스트 직접 편집
   const [editing, setEditing] = useState<{ id: AnyStepId; label: string; offset: string } | null>(null);
   const [adding, setAdding] = useState<{ label: string; offset: string; date: string } | null>(null);
@@ -279,6 +282,14 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
                         </span>
                       </label>
                     )}
+                    {noticeKindForStep(r.stepId ?? r.key) && (
+                      <div className="px-4 pb-2.5 pl-12">
+                        <button type="button" onClick={() => setNotice(noticeKindForStep(r.stepId ?? r.key))}
+                          className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800 hover:bg-amber-100">
+                          📨 가정통신문 만들기 · {NOTICE_LABEL[noticeKindForStep(r.stepId ?? r.key)!]}
+                        </button>
+                      </div>
+                    )}
                     {r.stepMemo && <div className="px-4 pb-2.5 pl-12 text-xs leading-snug text-sky-800">📝 {r.stepMemo}</div>}
                     {(r.lastYear || r.notes.length > 0) && (
                       <div className="space-y-1.5 px-4 pb-3 pl-12">
@@ -381,6 +392,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
           </div>
         )}
       </main>
+      {notice && <NoticeModal eventId={ev.id} kind={notice} onClose={() => setNotice(null)} />}
     </div>
   );
 }
