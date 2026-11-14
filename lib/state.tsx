@@ -3,7 +3,7 @@
 // (지금은 localStorage "handover:v1". 서버 저장으로 바꿀 때는 lib/storage.ts 만 교체)
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { today } from "./dates";
-import { allEvents, EMPTY_EXT_STATE, setExtOverlay, type ExtState } from "./ext";
+import { allEvents, applyEventFacts, EMPTY_EXT_STATE, setExtOverlay, type ExtState } from "./ext";
 import { handoverStorage, LOCAL_STATE_KEY, STORAGE_SCOPE } from "./storage";
 import { changesWithAdded } from "./data";
 import { EMPTY_CLIENT_STATE, type AnyStepId, type ChangeAlert, type ClientState, type CustomStepId, type DateString, type EventCard, type StepState } from "./types";
@@ -142,7 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // 업로드로 추가한 탭 데이터를 getExt·eventBudget·findVenue·getRecord 가 보도록 (렌더 전에 넣는다)
   setExtOverlay(ext);
 
-  const events = useMemo(() => allEvents(state), [state]);
+  const events = useMemo(() => allEvents(state).map((e) => applyEventFacts(e, ext.edits)), [state, ext.edits]);
   const changes = useMemo(() => changesWithAdded(state), [state]);
   const value = useMemo(() => ({ state, ext, ready, today: today(), events, changes, addChange, setStep, setEventDate, addNote, addCustomStep, editStep, hideStep, unhideStep, removeCustomStep, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt }),
     [state, ext, ready, events, changes, addChange, setStep, setEventDate, addNote, addCustomStep, editStep, hideStep, unhideStep, removeCustomStep, toggleConfirm, acknowledgeNote, acceptHandover, resetDemo, addEvent, updateExt]);

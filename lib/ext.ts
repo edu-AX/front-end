@@ -39,6 +39,21 @@ export type Venue = {
 /** 전임자의 고민 기록: 후보 비교·탈락 이유, 해보니 불필요했던 과정 */
 export type HandoverRecord = { candidates: DraftCandidate[]; skipped: string[] };
 
+/**
+ * 담당자가 화면에서 고친 값 (시연용: 브라우저에 저장). 원본 JSON 은 그대로 두고 위에 덮어서 보여준다.
+ * 서버 저장으로 바꿀 때는 이 모양 그대로 저장소에 올리면 된다.
+ */
+export type VenueEdit = Pick<Venue, "lastInspectionYear" | "travelMinutes" | "capacity" | "busParking" | "safetyChecks" | "emergency" | "history">;
+export type Edits = {
+  budgets: Record<string, Pick<Budget, "sources" | "items">>; // budgetId
+  venues: Record<string, VenueEdit>; // venueId
+  owners: Record<string, Owner[]>; // eventId → 담당 이력 전체(고친 결과)
+  facts: Record<string, { participants?: number; consentRate?: string; safetyStaff?: string }>; // eventId
+  /** "budget:B-03" → 마지막으로 고친 날짜 */
+  meta: Record<string, string>;
+};
+export const EMPTY_EDITS: Edits = { budgets: {}, venues: {}, owners: {}, facts: {}, meta: {} };
+
 /** localStorage "handover:ext:v1" — 백엔드 ClientState 와 따로 보관하는 화면 전용 상태 */
 export type ExtState = {
   extraDone: Record<string, boolean>; // "E-07:settle" → 완료 여부
@@ -49,12 +64,15 @@ export type ExtState = {
   addedBudgets: Budget[];
   addedVenues: Venue[];
   addedRecords: Record<string, HandoverRecord>; // eventId → 고민 기록
+  /** 담당자가 직접 고친 값 (예산·장소·담당 이력·참가 인원·교육청 기준) */
+  edits: Edits;
 };
 export const EMPTY_EXT_STATE: ExtState = {
   extraDone: {}, charPos: null, hidden: false,
   addedExt: {}, addedBudgets: [], addedVenues: [], addedRecords: {},
+  edits: EMPTY_EDITS,
 };
-export type ExtOverlay = Pick<ExtState, "addedExt" | "addedBudgets" | "addedVenues" | "addedRecords">;
+export type ExtOverlay = Pick<ExtState, "addedExt" | "addedBudgets" | "addedVenues" | "addedRecords"> & Partial<Pick<ExtState, "edits">>;
 
 const EMPTY_EXT: EventExt = { careerTracks: [], linkedSubjects: [], creativeArea: "", target: "", budgetId: null, venueIds: [], ownerHistory: [] };
 
@@ -77,9 +95,36 @@ export function setExtOverlay(o: ExtOverlay) {
   overlay = o;
 }
 
-export const getExt = (eventId: string, o: ExtOverlay = overlay): EventExt => o.addedExt?.[eventId] ?? extEvents[eventId] ?? EMPTY_EXT;
-export const allBudgets = (o: ExtOverlay = overlay): Budget[] => [...budgets, ...(o.addedBudgets ?? [])];
-export const allVenues = (o: ExtOverlay = overlay): Venue[] => [...venues, ...(o.addedVenues ?? [])];
+export const getExt = (eventId: string, o: ExtOverlay = overlay): EventExt => {
+  const base = o.addedExt?.[eventId] ?? extEvents[eventId] ?? EMPTY_EXT;
+  const owners = o.edits?.owners?.[eventId];
+  return owners ? { ...base, ownerHistory: owners } : base;
+};
+export const allBudgets = (o: ExtOverlay = overlay): Budget[] =>
+  [...budgets, ...(o.addedBudgets ?? [])].map((b) => (o.edits?.budgets?.[b.id] ? { ...b, ...o.edits.budgets[b.id] } : b));
+export const allVenues = (o: ExtOverlay = overlay): Venue[] =>
+  [...venues, ...(o.addedVenues ?? [])].map((v) => (o.edits?.venues?.[v.id] ? { ...v, ...o.edits.venues[v.id] } : v));
+
+/** 고친 참가 인원·교육청 기준을 행사 카드에 덮어쓴다 */
+export function applyEventFacts(ev: EventCard, edits?: Edits): EventCard {
+  const f = edits?.facts?.[ev.id];
+  if (!f) return ev;
+  return {
+    ...ev,
+    ...(f.participants !== undefined ? { participants: f.participants } : {}),
+    ...(ev.officeRules ? { officeRules: { ...ev.officeRules, ...(f.consentRate !== undefined ? { consentRate: f.consentRate } : {}), ...(f.safetyStaff !== undefined ? { safetyStaff: f.safetyStaff } : {}) } } : {}),
+  };
+}
+
+/** 고친 값을 저장하고 "마지막으로 고친 날짜"를 남긴다. value 가 null 이면 원래 값으로 되돌린다 */
+export function setEdit<K extends Exclude<keyof Edits, "meta">>(prev: ExtState, kind: K, id: string, value: Edits[K][string] | null, today: DateString): Partial<ExtState> {
+  const edits = prev.edits ?? EMPTY_EDITS;
+  const group = { ...(edits[kind] as Record<string, unknown>) };
+  const meta = { ...edits.meta };
+  if (value === null) { delete group[id]; delete meta[`${kind}:${id}`]; } else { group[id] = value; meta[`${kind}:${id}`] = today; }
+  return { edits: { ...edits, [kind]: group, meta } };
+}
+export const editedAt = (edits: Edits | undefined, kind: string, id: string) => edits?.meta?.[`${kind}:${id}`];
 export const eventBudget = (eventId: string, o: ExtOverlay = overlay) => allBudgets(o).find((b) => b.id === getExt(eventId, o).budgetId);
 export const findVenue = (id: string, o: ExtOverlay = overlay) => allVenues(o).find((v) => v.id === id);
 export const getRecord = (eventId: string, o: ExtOverlay = overlay): HandoverRecord | null =>
@@ -109,5 +154,8 @@ export function settlementSteps(event: EventCard, state: ClientState, ext: ExtSt
   ].map((x) => ({ ...x, done: !!ext.extraDone[x.key] }));
 }
 
-export const won = (n: number) => (n >= 10000 ? `${Math.round(n / 10000).toLocaleString()}만원` : `${n.toLocaleString()}원`);
+export const won = (n: number) => {
+  const a = Math.abs(n);
+  return `${n < 0 ? "-" : ""}${a >= 10000 ? `${Math.round(a / 10000).toLocaleString()}만원` : `${a.toLocaleString()}원`}`;
+};
 export const mmdd = (s: string) => `${Number(s.slice(5, 7))}/${Number(s.slice(8, 10))}`;

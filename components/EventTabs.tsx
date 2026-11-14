@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { BudgetEditor, EditBar, OwnerEditor, VenueEditor } from "./EditForms";
 import { eventBudget, findVenue, getExt, safetyChecklists, won, type Venue } from "@/lib/ext";
 import type { EventCard } from "@/lib/types";
 import { NOT_IN_DOC } from "@/lib/uploadExtras";
@@ -11,8 +13,10 @@ const FromUpload = () => (
 const nd = (v: string | number | null | undefined, ok = true) => (ok && v !== null && v !== undefined && v !== "" ? v : <span className="text-stone-400">{NOT_IN_DOC}</span>);
 
 export function BudgetTab({ ev }: { ev: EventCard }) {
+  const [editing, setEditing] = useState(false);
   const b = eventBudget(ev.id);
   if (!b) return <Empty>이 행사는 아직 예산 정보가 없어요. 담당자가 입력하거나 결과보고서에서 가져올 수 있어요.</Empty>;
+  if (editing) return <BudgetEditor ev={ev} b={b} onClose={() => setEditing(false)} />;
   const planned = b.sources.reduce((n, x) => n + x.planned, 0);
   const spent = b.sources.reduce((n, x) => n + x.spent, 0);
   const payer = b.sources.find((x) => x.perStudent);
@@ -20,6 +24,7 @@ export function BudgetTab({ ev }: { ev: EventCard }) {
   const amt = (n: number, unknown?: boolean) => (unknown ? <span className="text-stone-400">{NOT_IN_DOC}</span> : won(n));
   return (
     <div className="space-y-4 text-sm">
+      <EditBar kind="budgets" id={b.id} editing={editing} onEdit={() => setEditing(true)} label="예산 고치기" />
       {b.fromUpload && <FromUpload />}
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
         <table className="w-full">
@@ -80,10 +85,13 @@ export function BudgetTab({ ev }: { ev: EventCard }) {
   );
 }
 
-function VenueCard({ v }: { v: Venue }) {
+function VenueCard({ v, ev }: { v: Venue; ev: EventCard }) {
+  const [editing, setEditing] = useState(false);
   const up = !!v.fromUpload;
+  if (editing) return <VenueEditor ev={ev} v={v} onClose={() => setEditing(false)} />;
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
+      <div className="mb-2"><EditBar kind="venues" id={v.id} editing={editing} onEdit={() => setEditing(true)} label="장소 고치기" /></div>
       <div className="flex items-start justify-between gap-2">
         <div><div className="font-bold">{v.name}</div><div className="text-xs text-stone-500">{v.type} · {v.address}</div></div>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${up ? "bg-stone-100 text-stone-500" : "bg-sky-100 text-sky-800"}`}>{v.lastInspectionYear ? `마지막 점검 ${v.lastInspectionYear}` : "점검 기록 없음"}</span>
@@ -125,18 +133,26 @@ export function VenueTab({ ev }: { ev: EventCard }) {
   return (
     <div className="space-y-4 text-sm">
       {list.some((v) => v.fromUpload) && <FromUpload />}
-      {list.map((v) => <VenueCard key={v.id} v={v} />)}
+      {list.map((v) => <VenueCard key={v.id} v={v} ev={ev} />)}
       <p className="text-[11px] text-stone-400">안전 확인 항목은 2014년 매뉴얼 기사 기준이며 최신 시·도 매뉴얼로 교체할 수 있어요. 장소·업체는 가상 데이터예요.</p>
     </div>
   );
 }
 
 export function OwnerTab({ ev }: { ev: EventCard }) {
+  const [editing, setEditing] = useState(false);
   const x = getExt(ev.id);
   const list = x.ownerHistory;
-  if (list.length === 0) return <Empty>등록된 담당 이력이 없어요. 전임자가 결과보고서를 올리면 만들어져요.</Empty>;
+  if (editing) return <OwnerEditor ev={ev} list={list} onClose={() => setEditing(false)} />;
+  if (list.length === 0) return (
+    <div className="space-y-3 text-sm">
+      <EditBar kind="owners" id={ev.id} editing={editing} onEdit={() => setEditing(true)} label="올해 소감 쓰기" />
+      <Empty>등록된 담당 이력이 없어요. 전임자가 결과보고서를 올리거나 올해 소감을 직접 써서 남길 수 있어요.</Empty>
+    </div>
+  );
   return (
     <div className="space-y-3 text-sm">
+      <EditBar kind="owners" id={ev.id} editing={editing} onEdit={() => setEditing(true)} label="올해 소감 쓰기·고치기" />
       {x.fromUpload && <FromUpload />}
       {list.map((o) => (
         <div key={o.year} className="rounded-2xl bg-white p-4 shadow-sm">

@@ -13,6 +13,7 @@ import { useEscape } from "@/lib/useEscape";
 import { useLockBodyScroll } from "@/lib/useLockBodyScroll";
 import { BudgetTab, CareerTab, OwnerTab, VenueTab } from "./EventTabs";
 import NoticeModal from "./NoticeModal";
+import { EditBar, FactsEditor } from "./EditForms";
 import { NOTICE_LABEL, noticeKindForStep, type NoticeKind } from "@/lib/notice";
 
 const PII_LABEL = { name: "이름", phone: "전화번호", studentId: "학번", rrn: "주민번호", email: "이메일" } as const;
@@ -29,6 +30,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
   const [memo, setMemo] = useState("");
   const [memoStep, setMemoStep] = useState<AnyStepId | "">("");
   const [notice, setNotice] = useState<NoticeKind | null>(null);
+  const [editFacts, setEditFacts] = useState(false);
   // 체크리스트 직접 편집
   const [editing, setEditing] = useState<{ id: AnyStepId; label: string; offset: string } | null>(null);
   const [adding, setAdding] = useState<{ label: string; offset: string; date: string } | null>(null);
@@ -183,7 +185,9 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
               </div>
             )}
 
+            {editFacts ? <FactsEditor ev={ev} onClose={() => setEditFacts(false)} /> : (
             <div className="rounded-2xl bg-white p-4 text-sm shadow-sm">
+              <div className="mb-2"><EditBar kind="facts" id={ev.id} editing={editFacts} onEdit={() => setEditFacts(true)} label="인원·기준 고치기" /></div>
               <label className="flex items-center justify-between gap-2">
                 <span className="text-stone-500">행사일</span>
                 <input type="date" value={date} onChange={(e) => e.target.value && setEventDate(ev.id, e.target.value)} className="h-10 rounded-full border border-stone-200 px-3" />
@@ -191,6 +195,7 @@ export default function EventDrawer({ id, tab: initialTab, onClose }: { id: stri
               <div className="mt-2 flex justify-between"><span className="text-stone-500">남은 기간</span><b>{formatDDay(diffDays(today, date))}</b></div>
               <div className="mt-1 flex justify-between"><span className="text-stone-500">참가 인원</span><b>{ev.participants ?? "-"}명</b></div>
             </div>
+            )}
 
             {eventAlerts.map((c) => changeBox(c))}
 
