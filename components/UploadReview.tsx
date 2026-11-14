@@ -1,6 +1,6 @@
 "use client";
 // 업로드 3단계: AI가 채운 초안을 6탭으로 검토·수정. 항목마다 AI 작성 / 확인함 / 비어 있음 배지.
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { getTemplate } from "@/lib/data";
 import type { EventDraft, TemplateId } from "@/lib/types";
 import {
@@ -37,7 +37,23 @@ export default function UploadReview({ draft, initialNextDate, mode, onSave }: {
   const fields = useMemo(() => reviewFields(f), [f]);
   const emptyOf = useMemo(() => new Map(fields.map((x) => [x.key, x.empty])), [fields]);
   const counts = reviewCounts(f, confirmed);
-  const canSave = hasConfirmedCaution(f, confirmed) && !!f.title.trim() && !!f.nextDate;
+  const cautionOk = hasConfirmedCaution(f, confirmed);
+  // 저장이 막힌 이유 (없으면 저장 가능). 버튼은 항상 눌리고, 막혔으면 이유를 보여주고 그 자리로 데려간다
+  const blocked = !f.title.trim() ? "행사명을 적어 주세요"
+    : !f.nextDate ? "내년 행사일을 골라 주세요"
+    : !cautionOk ? (f.cautions.some((c) => c.text.trim()) ? "주의점 하나에 ✓ 확인을 눌러 주세요" : "주의점을 하나 적어 주세요")
+    : null;
+  const [showWhy, setShowWhy] = useState(false);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const cautionRef = useRef<HTMLDivElement>(null);
+  const trySave = () => {
+    if (!blocked) return onSave(toDraft(f), f.nextDate);
+    setShowWhy(true);
+    setTab("handover");
+    // 탭이 바뀐 뒤 그려진 자리로 스크롤
+    const target = f.title.trim() && f.nextDate ? cautionRef : titleRef;
+    requestAnimationFrame(() => target.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  };
   const tpl = getTemplate(f.template);
 
   const confirm = (key: string) => setConfirmed((p) => (p.has(key) ? p : new Set(p).add(key)));
@@ -87,7 +103,7 @@ export default function UploadReview({ draft, initialNextDate, mode, onSave }: {
       </div>
 
       {tab === "handover" && (
-        <div className="space-y-2">
+        <div ref={titleRef} className="space-y-2">
           {box("title", <>
             {head("title", "행사명")}
             <input className={input} value={f.title} onChange={(e) => upd("title", (p) => ({ ...p, title: e.target.value }))} />
@@ -101,7 +117,7 @@ export default function UploadReview({ draft, initialNextDate, mode, onSave }: {
               <input type="date" className={input} value={f.nextDate} onChange={(e) => setF((p) => ({ ...p, nextDate: e.target.value }))} /></label>
           </>)}
 
-          <div className="pt-1 text-xs font-bold text-stone-500">주의점 — 다음 담당자가 “인수인계 받기”에서 꼭 보게 돼요</div>
+          <div ref={cautionRef} className="pt-1 text-xs font-bold text-stone-500">주의점 — 다음 담당자가 “인수인계 받기”에서 꼭 보게 돼요</div>
           {f.cautions.length === 0 && emptySection("cautions", "주의점")}
           {f.cautions.map((c, i) => box(`caution:${c.uid}`, <>
             {head(`caution:${c.uid}`, `주의점 ${i + 1}`)}
@@ -112,8 +128,8 @@ export default function UploadReview({ draft, initialNextDate, mode, onSave }: {
             </div>
           </>, "bg-amber-50"))}
           {addBtn("주의점 추가", () => setF((p) => ({ ...p, cautions: [...p.cautions, { uid: newUid(), text: "" }] })))}
-          {!hasConfirmedCaution(f, confirmed) && (
-            <p className="rounded-xl bg-amber-100 px-3 py-2 text-xs font-bold text-amber-800">다음 담당자에게 꼭 전하고 싶은 한 가지를 확인해 주세요 (주의점의 ✓ 확인)</p>
+          {!cautionOk && (
+            <p className={`rounded-xl px-3 py-2 text-xs font-bold ${showWhy ? "bg-red-100 text-red-700 ring-2 ring-red-300" : "bg-amber-100 text-amber-800"}`}>다음 담당자에게 꼭 전하고 싶은 한 가지를 확인해 주세요 (주의점의 ✓ 확인)</p>
           )}
 
           {box("handoverNote", <>
@@ -285,10 +301,11 @@ export default function UploadReview({ draft, initialNextDate, mode, onSave }: {
       )}
 
       <div className="sticky bottom-0 -mx-6 -mb-6 flex items-center justify-between gap-2 border-t border-stone-200 bg-cream px-6 py-3">
-        <span className="text-[11px] text-stone-400">저장할 때 이름·전화번호는 한 번 더 가려요.</span>
-        <button type="button" onClick={() => onSave(toDraft(f), f.nextDate)} disabled={!canSave}
-          title={canSave ? "" : "주의점 하나 이상을 확인해 주세요"}
-          className="shrink-0 rounded-full bg-stone-800 px-5 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40">내년 캘린더에 저장</button>
+        {blocked
+          ? <span role="status" className={`text-xs font-bold ${showWhy ? "text-red-600" : "text-amber-700"}`}>저장하려면: {blocked}</span>
+          : <span className="text-[11px] text-stone-400">저장할 때 이름·전화번호는 한 번 더 가려요.</span>}
+        <button type="button" onClick={trySave} aria-disabled={!!blocked}
+          className={`shrink-0 rounded-full px-5 py-2 text-sm font-bold text-white ${blocked ? "bg-stone-400" : "bg-stone-800"}`}>내년 캘린더에 저장</button>
       </div>
     </div>
   );
